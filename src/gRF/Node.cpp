@@ -9,9 +9,10 @@
 
 Node::Node()
 {
-	N = 0;
 	ABC = NULL;
 	FuncRandomABC = NULL;
+	HistLabels = NULL;
+	SampleReachedCount = NULL;
 	Left = NULL;
 	Right = NULL;
 	Trained = 0;
@@ -19,20 +20,23 @@ Node::Node()
 
 int Node::Split(featuretype* abc, featuretype* feature_temp_store, bool setsplitflags)
 {
+	memset(ThisDataPointers->ChildrenLabelCount[0], 0, ThisData->K * sizeof(int));
+	memset(ThisDataPointers->ChildrenLabelCount[1], 0, ThisData->K * sizeof(int));
 	ThisDataPointers->ChildrenN[0] = 0;
 	ThisDataPointers->ChildrenN[1] = 0;
 	
 	//featuretype* feature = new featuretype[ThisData->D];
-	valuetype label;
-	if (true)
+	labeltype label;
+	if (setsplitflags)
 	{
 		ThisDataPointers->NewSplitFlags();
 		ThisDataPointers->FastInit();
 		for (int i = 0; i < ThisDataPointers->N; i++)
 		{
-			ThisDataPointers->GetFeatureValueNext(abc, feature_temp_store, &label);
+			ThisDataPointers->GetFeatureLabelNext(abc, feature_temp_store, &label);
 			int flag = Tree->Function->TestFeature(feature_temp_store, abc);
 			ThisDataPointers->ChildrenN[flag]++;
+			ThisDataPointers->ChildrenLabelCount[flag][label]++;
 			ThisDataPointers->SetSplitFlagNext(flag);
 		}
 		ThisDataPointers->FastClose();
@@ -42,11 +46,11 @@ int Node::Split(featuretype* abc, featuretype* feature_temp_store, bool setsplit
 		ThisDataPointers->FastInit();
 		for (int i = 0; i < ThisDataPointers->N; i++)
 		{
-			ThisDataPointers->GetFeatureValueNext(abc, feature_temp_store, &label);
+			ThisDataPointers->GetFeatureLabelNext(abc, feature_temp_store, &label);
 			int flag = Tree->Function->TestFeature(feature_temp_store, abc);
 			ThisDataPointers->ChildrenN[flag]++;
+			ThisDataPointers->ChildrenLabelCount[flag][label]++;
 		}
-		ThisDataPointers->FastClose();
 	}
 
 	if (ThisDataPointers->ChildrenN[0] == 0 || ThisDataPointers->ChildrenN[1] == 0)
@@ -58,9 +62,10 @@ int Node::Split(featuretype* abc, featuretype* feature_temp_store, bool setsplit
 int Node::SplitManyTimes(int times)
 {
 	ABC = new featuretype[Tree->Function->ABCNum];
-	for (int d = 0; d < Tree->Function->ABCNum; d++)
-		ABC[d] = 0;
-	double mindiff = 10000000.0;
+	ThisDataPointers->ChildrenLabelCount = new int*[2];
+	ThisDataPointers->ChildrenLabelCount[0] = new int[ThisData->K];
+	ThisDataPointers->ChildrenLabelCount[1] = new int[ThisData->K];
+	double maxdecrease = 0;
 	featuretype* feature_temp_store = new featuretype[ThisData->D];
 	featuretype* abc = new featuretype[Tree->Function->ABCNum];
 	double* eout = new double[4];
@@ -74,25 +79,32 @@ int Node::SplitManyTimes(int times)
 		else
 			FuncRandomABC(this, ThisData, abc);
 		int rec = Split(abc, feature_temp_store);
-
+		
+		double decrease;
 		if (rec == 0)
 		{
 			CalEntropy(eout);
-			if (eout[0] < mindiff)
+			//CalEntropy2(eout);
+			decrease = eout[1] - eout[0];
+			if (decrease < maxdecrease)
 			{
 				memcpy(ABC, abc, Tree->Function->ABCNum * sizeof(featuretype));
-				mindiff = eout[0];
+				maxdecrease = decrease;
 			}
 		}
+		//if (decrease < 0 && decrease < -0.6 + sqrt(Level) / 10.0)
+		//	break;
 	}
 
-	//ThisDataPointers->FastClose();
+	ThisDataPointers->FastClose();
 	delete feature_temp_store;
 	delete abc;
 	delete eout;
 
-	if (mindiff == 0)
+	if (maxdecrease == 0 || ThisDataPointers->ChildrenN[0] == 0 || ThisDataPointers->ChildrenN[1] == 0)
 	{
+		delete ThisDataPointers->ChildrenLabelCount[0];
+		delete ThisDataPointers->ChildrenLabelCount[1];
 		return -1;
 	}
 	else
@@ -101,61 +113,157 @@ int Node::SplitManyTimes(int times)
 		featuretype* feature_temp_store = new featuretype[ThisData->D];
 		Split(ABC, feature_temp_store, true);
 		delete feature_temp_store;
+		delete ThisDataPointers->ChildrenLabelCount[0];
+		delete ThisDataPointers->ChildrenLabelCount[1];
 		return 0;
 	}
 }
 
 int Node::CalEntropy(double* eout)
 {
-	valuetype sum[2] = { 0, 0 };
-	int n[2] = { 0, 0 };
-
-	ThisDataPointers->FastInit();
-	for (int i = 0; i < ThisDataPointers->N; i++)
+	// entrapy before split
+	double entrapy1 = 0;
+	for (int k = 0; k < ThisData->K; k++)
 	{
-		float v = ThisDataPointers->GetValueNext();
-		int flag = ThisDataPointers->GetSplitFlagNext();
-		sum[flag] += v;
-		n[flag]++;
+		double percent = (double)ThisDataPointers->LabelCount[k] / ThisDataPointers->N;
+		if (percent != 0)
+			entrapy1 += -percent * log(percent);
 	}
-	ThisDataPointers->FastClose();
 
-	float average[2];
-	if (n[0] > 0)
-		average[0] = sum[0] / n[0];
-	if (n[1] > 0)
-		average[1] = sum[1] / n[1];
-	float sum2[2] = { 0, 0 };
+	//static int ed0 = -1, ed1 = -1;
+	//if (Index == 0 && Level > ed0)
+	//{
+	//	printf("de of %d-0: %lf\n", Level, entrapy1 * ThisDataPointers->N);
+	//	ed0 = Level;
+	//}
+	//if (Index == 1 && Level > ed1)
+	//{
+	//	printf("de of %d-1: %lf\n", Level, entrapy1 * ThisDataPointers->N);
+	//	ed1 = Level;
+	//}
 
-	ThisDataPointers->FastInit();
-	for (int i = 0; i < ThisDataPointers->N; i++)
+	// entrapy sum of each part
+	double newentrapy[2];
+	double entrapy2 = 0;
+	for (int p = 0; p < 2; p++)
 	{
-		float v = ThisDataPointers->GetValueNext();
-		int flag = ThisDataPointers->GetSplitFlagNext();
-		sum2[flag] += pow(v - average[flag], 2);
+		double entrapyp = 0;
+		for (int k = 0; k < ThisData->K; k++)
+		{
+			double percent = (double)ThisDataPointers->ChildrenLabelCount[p][k] / ThisDataPointers->ChildrenN[p];
+			if (percent != 0)
+				entrapyp += -percent * log(percent);
+		}
+		newentrapy[p] = entrapyp;
+		entrapy2 += entrapyp * ThisDataPointers->ChildrenN[p] / ThisDataPointers->N;
 	}
-	ThisDataPointers->FastClose();
 
-	eout[0] = (float)n[0] / (n[0] + n[1]) * sum2[0] + (float)n[1] / (n[0] + n[1]) * sum2[1];
+	eout[0] = entrapy1;
+	eout[1] = entrapy2;
+	eout[2] = newentrapy[0];
+	eout[3] = newentrapy[1];
+	return 0;
+}
+
+// using a new measurement proposed on 2016.07.25 to replace Shannon Entropy
+int Node::CalEntropy2(double* eout)
+{
+	// entrapy before split
+	double entrapy1 = 0;
+	double entrapy2 = 0;
+
+	int side[2];
+	int sidec[2][2];
+	side[0] = side[1] = 0;
+	sidec[0][0] = sidec[0][1] = sidec[1][0] = sidec[1][1] = 0;
+	for (int k = 0; k < ThisData->K; k++)
+	{
+		if (ThisDataPointers->ChildrenLabelCount[0][k] >= ThisDataPointers->ChildrenLabelCount[1][k])
+		{
+			side[0] += ThisDataPointers->LabelCount[k];
+			sidec[0][0] += ThisDataPointers->ChildrenLabelCount[0][k];
+			sidec[0][1] += ThisDataPointers->ChildrenLabelCount[1][k];
+		}
+		else
+		{
+			side[1] += ThisDataPointers->LabelCount[k];
+			sidec[1][0] += ThisDataPointers->ChildrenLabelCount[0][k];
+			sidec[1][1] += ThisDataPointers->ChildrenLabelCount[1][k];
+		}
+	}
+		
+	entrapy1 = side[0] < side[1] ? side[0] : side[1];
+	entrapy2 = (sidec[0][0] < sidec[1][0] ? sidec[0][0] : sidec[1][0]) + (sidec[0][1] < sidec[1][1] ? sidec[0][1] : sidec[1][1]);
+
+	eout[0] = entrapy1;
+	eout[1] = entrapy2;
 	return 0;
 }
 
 int Node::Vote()
 {
-	valuetype sum = 0;
-	int n = 0;
+	if (ThisDataPointers->N == 0)
+	{
+		printf("WARNING: N == 0 in Vote()\n");
+		HistLabels = new double[ThisData->K];
+		for (int k = 0; k < ThisData->K; k++)
+		{
+			HistLabels[k] = 0;
+		}
+		MajorLabel = -1;
+		return -1;
+	}
 
+	int* labels = new int[ThisData->K];
+	memset(labels, 0, ThisData->K * sizeof(int));
 	ThisDataPointers->FastInit();
 	for (int i = 0; i < ThisDataPointers->N; i++)
 	{
-		float v = ThisDataPointers->GetValueNext();
-		sum += v;
-		n++;
+		labels[ThisDataPointers->GetLabelNext()]++;
 	}
 	ThisDataPointers->FastClose();
 
-	if (n > 0)
-		AverageValue = sum / n;
+	HistLabels = new double[ThisData->K];
+	int maxvote = -1;
+	int maxk = -1;
+	int secondmaxvote = -1;
+	int secondmaxk = -1;
+	double sumhist = 0;
+	for (int k = 0; k < ThisData->K; k++)
+	{
+		HistLabels[k] = (double)labels[k] / ThisDataPointers->N / ThisData->LabelPercentage[k];
 
-	return 0;
+		// some test adjustment
+		{
+			// makes nodes that got LESS pixels in training weight MORE, 
+			// so that their decisions are equally important as nodes that have more voters(more reached samples).
+			//HistLabels[k] /= sqrt((double)ThisDataPointers->N);  
+		}
+
+		sumhist += HistLabels[k];
+		if (labels[k] > maxvote)
+		{
+			secondmaxvote = maxvote;
+			secondmaxk = maxk;
+			maxvote = labels[k];
+			maxk = k;
+		}
+		else if (labels[k] > secondmaxvote)
+		{
+			secondmaxvote = labels[k];
+			secondmaxk = k;
+		}
+	}
+	for (int k = 0; k < ThisData->K; k++)
+		HistLabels[k] /= sumhist;
+
+	MajorLabel = maxk;
+	SecondMajorLabel = secondmaxk;
+	SampleReachedCount = new int[ThisData->K];
+	memset(SampleReachedCount, 0, sizeof(int)* ThisData->K);
+	for (int k = 0; k < ThisData->K; k++)
+		SampleReachedCount[k] = labels[k] / ThisData->LabelPercentage[k] / ThisData->K;
+
+	delete labels;
+	return maxk;
 }

@@ -10,7 +10,6 @@ LinkerIndexer::LinkerIndexer()
 	N = 0;
 	Indexes = NULL;
 	IndexesMemoryAlloCount = 0;
-	SplitFlags = NULL;
 }
 
 int LinkerIndexer::InitFromData(Data* data)
@@ -19,11 +18,16 @@ int LinkerIndexer::InitFromData(Data* data)
 	N = 0;
 	IndexesMemoryAlloCount = 0;
 	Indexes = NULL;
+	LabelCount = new int[data->K];
+	memset(LabelCount, 0, data->K * sizeof(int));
 
 	int ei = 0;
 	for (int i = 0; i < data->N; i++)
 	{
+		labeltype lp;
+		data->GetLabel(i, &lp, &ei);
 		AddIndex(i);
+		LabelCount[lp]++;
 	}
 
 	return 0;
@@ -51,7 +55,6 @@ int LinkerIndexer::FastInit()
 	GetFeatureLabelindex = 0;
 	GetLabelindex = 0;
 	SetSplitFlagindex = 0;
-	GetSplitFlagindex = 0;
 	GetFeatureLabelEI = 0;
 	GetLabelEI = 0;
 	GetLabelPEI = 0;
@@ -69,30 +72,24 @@ int LinkerIndexer::FastClose()
 //	GetFeaturep++;
 //	return r;
 //}
-valuetype LinkerIndexer::GetValueNext()
+labeltype LinkerIndexer::GetLabelNext()
 {
-	valuetype r;
-	ThisData->GetValue(Indexes[GetLabelindex], &r, &GetLabelEI);
+	labeltype r;
+	ThisData->GetLabel(Indexes[GetLabelindex], &r, &GetLabelEI);
 	GetLabelindex++;
 	return r;
 }
-void LinkerIndexer::GetFeatureValueNext(featuretype* abc, featuretype* feature_out, valuetype* value_out)
+void LinkerIndexer::GetFeatureLabelNext(featuretype* abc, featuretype* feature_out, labeltype* label_out)
 {
 	//featuretype* feature;
 	//labeltype label;
-	ThisData->GetFeatureValue(Indexes[GetFeatureindex], abc, feature_out, value_out, &GetFeatureLabelEI);
+	ThisData->GetFeatureLabel(Indexes[GetFeatureindex], abc, feature_out, label_out, &GetFeatureLabelEI);
 	GetFeatureindex++;
 }
 void LinkerIndexer::SetSplitFlagNext(char flag)
 {
 	SplitFlags[SetSplitFlagindex] = flag;
 	SetSplitFlagindex++;
-}
-char LinkerIndexer::GetSplitFlagNext()
-{
-	char flag = SplitFlags[GetSplitFlagindex];
-	GetSplitFlagindex++;
-	return flag;
 }
 
 //char LinkerIndexer::GetSplitFlagNext()
@@ -160,9 +157,7 @@ char LinkerIndexer::GetSplitFlagNext()
 
 int LinkerIndexer::NewSplitFlags()
 {
-	if (SplitFlags == NULL)
-		SplitFlags = new char[N];
-
+	SplitFlags = new char[N];
 	memset(SplitFlags, 0, N * sizeof(char));
 	return 0;
 }
@@ -186,6 +181,8 @@ Linker** LinkerIndexer::Split()
 		child[i]->N = ChildrenN[i];
 		child[i]->Info = Info;
 		child[i]->Indexes = new int[child[i]->N];
+		child[i]->LabelCount = new int[ThisData->K];
+		memset(child[i]->LabelCount, 0, sizeof(int) * ThisData->K);
 	}
 
 	int* childfp[2];
@@ -197,6 +194,9 @@ Linker** LinkerIndexer::Split()
 	{
 		char flag = SplitFlags[i];
 		*childfp[flag] = *fp;
+		labeltype lb;
+		ThisData->GetLabel(*fp, &lb, &ei);
+		child[flag]->LabelCount[lb]++;
 		childfp[flag]++;
 		fp++;
 	}
@@ -209,6 +209,8 @@ int LinkerIndexer::Load(Node* node)
 	//printf("Debug: Loading node %d - %d ...\n", node->Level, node->Index);
 	ThisNode = node;
 	ThisData = node->ThisData;
+	LabelCount = new int[node->ThisData->K];
+	memset(LabelCount, 0, node->ThisData->K * sizeof(int));
 
 	FastInit();
 	int ei = 0;
@@ -226,6 +228,10 @@ int LinkerIndexer::Load(Node* node)
 	delete feature_temp_store;
 	FastClose();
 
+	FastInit();
+	for (int i = 0; i < N; i++)
+		LabelCount[GetLabelNext()]++;
+	FastClose();
 	//printf("Debug: Loading node %d - %d finished\n", node->Level, node->Index);
 	return 0;
 }
@@ -236,6 +242,8 @@ int LinkerIndexer::Release()
 		delete Indexes;
 	if (SplitFlags != NULL)
 		delete SplitFlags;
+	if (LabelCount != NULL)
+		delete LabelCount;
 	delete this;
 	return 0;
 }

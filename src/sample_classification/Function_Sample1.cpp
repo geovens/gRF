@@ -15,7 +15,7 @@ int Function_Sample1::TestFeature(featuretype* feature, featuretype* abc)
 int Function_Sample1::RandomABC(Node* node, featuretype* abc)
 {
 	
-	abc[0] = (featuretype)rand() / RAND_MAX * 4; // randomly select a dimension from the 4 dimensions, x_1, x_2, x_3 and x_4
-	abc[1] = (featuretype)rand() / RAND_MAX * 8; // randomly select a threshold
+	abc[0] = (featuretype)rand() / RAND_MAX * 2; // randomly select a dimension from the 2 dimensions, x_1 and x_2
+	abc[1] = (featuretype)rand() / RAND_MAX; // randomly select a threshold
 	return 0;
 }

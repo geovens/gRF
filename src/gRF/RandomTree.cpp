@@ -11,8 +11,8 @@
 RandomTree::RandomTree()
 {
 	ID = 0;
-	CandidatesEachNode = 1000;
 	MaxThreadNumber = 4;
+	CandidatesEachNode = 1000;
 	ThreadCount = 0;
 	//IsWritingNode = 0;
 }
@@ -102,14 +102,19 @@ int RandomTree::RecursionSplitTrainingSet(Node* node)
 	}
 	else
 	{
+		// TODO: consider disable vote on non-leaf nodes to speed up!
 		if (node->ThisDataPointers == NULL)
 			LoadDataPointers(node);
-
-		node->N = node->ThisDataPointers->N;
-		if (node->Level == MaxDepth || node->IsLeaf || node->ThisDataPointers->N < 2)
+		node->Vote();
+		double maxhist = 0;
+		for (int k = 0; k < ThisData->K; k++)
+		if (node->HistLabels[k] > maxhist)
+			maxhist = node->HistLabels[k];
+		//if ((1 - maxhist) * node->ThisDataPointers->N < ThisData->N / ThisData->K / 20 || node->Level == MaxDepth || node->IsLeaf)
+		if (node->Level == MaxDepth || node->IsLeaf)
 		{
 			node->IsLeaf = true;
-			node->Vote();
+			//node->Vote();
 			node->Trained = 1;
 			WriteNode(node);
 			node->ThisDataPointers->Release();
@@ -136,7 +141,22 @@ int RandomTree::RecursionSplitTrainingSet(Node* node)
 			{
 				for (int i = 0; i < node->Level; i++)
 					printf("   ");
-				printf("%d -> %d, %d\n", node->ThisDataPointers->N, node->Left->ThisDataPointers->N, node->Right->ThisDataPointers->N);
+				printf("%d -> %d, %d", node->ThisDataPointers->N, node->Left->ThisDataPointers->N, node->Right->ThisDataPointers->N);
+				//printf("      class 0: %d -> %d, %d", node->ThisDataPointers->LabelCount[0], node->Left->ThisDataPointers->LabelCount[0], node->Right->ThisDataPointers->LabelCount[0]);
+				// Calculate the contribution of each node, but only valid if there are only two classes!!
+				int thismin = node->ThisData->N;
+				int leftmin = node->ThisData->N;
+				int rightmin = node->ThisData->N;
+				int rootmin = node->ThisData->N;
+				for (int k = 0; k < node->ThisData->K; k++)
+				{
+					if (node->ThisDataPointers->LabelCount[k] < thismin) thismin = node->ThisDataPointers->LabelCount[k];
+					if (node->Left->ThisDataPointers->LabelCount[k] < leftmin) leftmin = node->Left->ThisDataPointers->LabelCount[k];
+					if (node->Right->ThisDataPointers->LabelCount[k] < rightmin) rightmin = node->Right->ThisDataPointers->LabelCount[k];
+					if (Root->ThisDataPointers->LabelCount[k] < rootmin) rootmin = Root->ThisDataPointers->LabelCount[k];
+				}
+				//printf("      contribution: %.3lf", (double)(thismin - leftmin - rightmin) / rootmin);
+				printf("\n");
 			}
 
 			node->Trained = 1;
@@ -156,15 +176,14 @@ int RandomTree::RecursionSplitTrainingSet(Node* node)
 					int** hp = new int*[2];
 					hp[0] = (int*)this;
 					hp[1] = (int*)(node->Left);
-					/*HANDLE hThread;
-					hThread = CreateThread(NULL, 0, NewThread, hp, 0, NULL);
-					CloseHandle(hThread);*/
 					new std::thread(NewThread, hp);
 				}
 			}
 			else
 			{
 				node->Left->IsLeaf = true;
+				for (int k = 0; k < ThisData->K; k++)
+					node->HistLabels[k] = 0;
 				node->Left->Trained = 1;
 				WriteNode(node->Left);
 				node->Left->ThisDataPointers->Release();
@@ -174,7 +193,7 @@ int RandomTree::RecursionSplitTrainingSet(Node* node)
 		else
 		{
 			node->IsLeaf = true;
-			node->Vote();
+			//node->Vote();
 			node->Trained = 1;
 			WriteNode(node);
 			node->ThisDataPointers->Release();
@@ -249,9 +268,11 @@ int RandomTree::ReadTrainingProcess()
 	if (ftree == NULL)
 		return 0;
 
-	int depth, abcnum, d, n;
-	fscanf(ftree, "%d,%d,%d,%d,%d\n", &depth, &n, &d, &abcnum);
+	int depth, abcnum, d, n, k;
+	fscanf(ftree, "%d,%d,%d,%d,%d\n", &depth, &n, &k, &d, &abcnum);
 	if (n != ThisData->N)
+		return -1;
+	if (k != ThisData->K)
 		return -1;
 	if (d != ThisData->D)
 		return -1;
@@ -275,10 +296,11 @@ int RandomTree::ReadNodeFile()
 	if (fnode == NULL)
 		return -1;
 
+	int K;
 	int ABCNum;
 	char line[2048];
 	fgets(line, 2048, fnode);
-	sscanf(line, "%d", &ABCNum);
+	sscanf(line, "%d,%d", &K, &ABCNum);
 	int sumbyt;
 	int byt;
 	int linenum = 0;
@@ -292,20 +314,46 @@ int RandomTree::ReadNodeFile()
 		fgets(line, 2048, fnode);
 		if (strlen(line) < 10)
 			printf("ERROR: nodes.txt crupted at line %d\n", linenum);
-		int level, leaf, n;
+		int level, leaf, major;
 		unsigned long long index;
-		double ave;
-		int re = sscanf(line, "%d,%lld,%d,%le,%d,%n", &level, &index, &leaf, &ave, &n, &sumbyt);
-		if (re != 5)
+		int re = sscanf(line, "%d,%lld,%d,%d,%n", &level, &index, &leaf, &major, &sumbyt);
+		if (re != 4)
 			continue;
 		Node* node = FindNode(level, index);
 		if (leaf == 1)
 			node->IsLeaf = true;
-		node->AverageValue = ave;
-		node->N = n;
-
+		node->MajorLabel = major;
+		node->HistLabels = new double[K];
+		for (int k = 0; k < K; k++)
+			node->HistLabels[k] = 0;
+		node->SampleReachedCount = new int[K];
+		for (int k = 0; k < K; k++)
+			node->SampleReachedCount[k] = 0;
 		node->ABC = new featuretype[Function->ABCNum];
-	
+		for (int k = 0; k < K; k++)
+		{
+			double r;
+			re = sscanf(line + sumbyt, "%le,%n", &r, &byt);
+			if (re != 1)
+			{
+				printf("ERRORw1, linenum=%d\n", linenum);
+				continue;
+			}
+			sumbyt += byt;
+			node->HistLabels[k] = r;
+		}
+		for (int k = 0; k < K; k++)
+		{
+			int r;
+			re = sscanf(line + sumbyt, "%d,%n", &r, &byt);
+			if (re != 1)
+			{
+				printf("ERRORxey, linenum=%d\n", linenum);
+				continue;
+			}
+			sumbyt += byt;
+			node->SampleReachedCount[k] = r;
+		}
 		for (int a = 0; a < ABCNum; a++)
 		{
 			double r;
@@ -325,7 +373,7 @@ int RandomTree::ReadNodeFile()
 	}
 
 	// test
-	printf("Reading trained data of tree #%d\n", ID);
+	printf("%d, %d, %d, %d, %d, %d, %d\n", abc5[0], abc5[1], abc5[2], abc5[3], abc5[4], abc5[5]);
 
 	fclose(fnode);
 	return 0;
@@ -338,8 +386,12 @@ int RandomTree::WriteNode(Node* node)
 //		Sleep(10);
 //	IsWritingNode++;
 
-	char* line = new char[2048];
-	sprintf(line, "%d,%lld,%d,%le,%d,", node->Level, node->Index, node->IsLeaf ? 1 : 0, node->AverageValue, node->N);
+	char* line = new char[10000];
+	sprintf(line, "%d,%lld,%d,%d,", node->Level, node->Index, node->IsLeaf ? 1 : 0, node->MajorLabel);
+	for (int k = 0; k < ThisData->K; k++)
+		sprintf(line + strlen(line), "%le,", node->HistLabels != NULL ? node->HistLabels[k] : 0.0);
+	for (int k = 0; k < ThisData->K; k++)
+		sprintf(line + strlen(line), "%d,", node->SampleReachedCount != NULL ? node->SampleReachedCount[k] : 1);
 	for (int a = 0; a < Function->ABCNum; a++)
 		sprintf(line + strlen(line), "%le,", node->ABC != NULL ? node->ABC[a] : 0.0);
 	sprintf(line + strlen(line), "\n");
@@ -364,47 +416,33 @@ int RandomTree::WriteNode(Node* node)
 	return 0;
 }
 
-int RandomTree::Train(Data* data, int linkermode)
+int RandomTree::Train(Data* data, int pointermode)
 {
 	ThisData = data;
 	Root->ThisData = data;
-	PointersMode = linkermode;
+	ThisData->CalLabelPercentage();
+	PointersMode = pointermode;
 	int rec = ReadTrainingProcess();
 	if (rec == 0)
 	{
 		printf("starting a new training process.\n\n");
 		FILE* ftree;
 		ftree = fopen(".\\output\\tree.txt", "w");
-		fprintf(ftree, "%d,%d,%d,%d\n", MaxDepth, ThisData->N, ThisData->D, Function->ABCNum);
-		fprintf(ftree, "%d,%d\n", CandidatesEachNode, linkermode);
+		fprintf(ftree, "%d,%d,%d,%d,%d\n", MaxDepth, ThisData->N, ThisData->K, ThisData->D, Function->ABCNum);
+		fprintf(ftree, "%d,%d\n", CandidatesEachNode, pointermode);
 		fclose(ftree);
 		char nodefiletext[1024];
 		sprintf(nodefiletext, ".\\output\\nodes-%d.txt", ID);
 		FNode = fopen(nodefiletext, "w");
-		fprintf(FNode, "%d\n", Function->ABCNum);
+		fprintf(FNode, "%d,%d\n", data->K, Function->ABCNum);
 
 		Linker* datapointers;
-		if (linkermode == 1)
-		{
-			// This linker is only appliable for fixed features of finite dimension, not for dynamicly calculated features using abc.
+		if (pointermode == 1)
 			datapointers = new LinkerPointer();
-		}
-		else if (linkermode == 2)
-		{
-			// use file instead of memory
+		else if (pointermode == 2)
 			datapointers = new LinkerIndexerFile();
-		}
-		else if (linkermode == 3)
-		{
-			// this should be the default linker
-			datapointers = new LinkerIndexer();
-		}
 		else
-		{
-			// this should be the default linker
 			datapointers = new LinkerIndexer();
-		}
-
 		datapointers->InitFromData(data);
 		Root->ThisDataPointers = datapointers;
 		Root->ThisDataPointers->ThisNode = Root;
@@ -451,21 +489,22 @@ int RandomTree::Train(Data* data, int linkermode)
 	}
 	else if (rec == -1)
 	{
-		printf("ERROR: Previous (either finished or unfinished) training process is detected,\n");
-		printf("       however some settings of it are not consistent with the current settings,\n");
-		printf("       thus resuming of the previous training process has failed.\n");
-		printf("       If you want to start a new training process, \n");
-		printf("       please delete all previous training files located at ./output/\n\n");
+		printf("ERROR: previous unfinished training process is detected, \n");
+		printf("       however the params of it are not consistent with the current settings\n");
+		printf("       thus resuming of the previous training process is failed.\n");
+		printf("       if you want to start a new training process, \n");
+		printf("       please delete all previous training files located at .\\output\\\n\n");
 		return -1;
 	}
 	return -2;
 }
 
-int RandomTree::Test(Data* data)
+double RandomTree::Test(Data* data)
 {
 	ThisData = data;
+	ThisData->CalLabelPercentage();
 
-
+	int correct = 0;
 	//data->Predictions = new Node*[data->N];
 	int EI = 0, EInode = 0, eit = 0;
 	featuretype* feature_temp_store = new featuretype[ThisData->D];
@@ -473,15 +512,21 @@ int RandomTree::Test(Data* data)
 	{
 		Node* node = TestFeature(i, &eit, feature_temp_store);
 		data->SetReachedNode(i, node, &EInode);
+		labeltype lb;
+		data->GetLabel(i, &lb, &EI);
+		if (node->MajorLabel == lb)
+			correct++;
 	}
 	delete feature_temp_store;
-	return 0;
+	return (double)correct / data->N;
 }
 
-int RandomTree::Test(Data* data, int level)
+double RandomTree::Test(Data* data, int level)
 {
 	ThisData = data;
+	ThisData->CalLabelPercentage();
 
+	int correct = 0;
 	//data->Predictions = new Node*[data->N];
 	int EI = 0, EInode = 0, eit = 0;
 	featuretype* feature_temp_store = new featuretype[ThisData->D];
@@ -489,9 +534,13 @@ int RandomTree::Test(Data* data, int level)
 	{
 		Node* node = TestFeature(i, level, &eit, feature_temp_store);
 		data->SetReachedNode(i, node, &EInode);
+		labeltype lb;
+		data->GetLabel(i, &lb, &EI);
+		if (node->MajorLabel == lb)
+			correct++;
 	}
 	delete feature_temp_store;
-	return 0;
+	return (double)correct / data->N;
 }
 
 Node* RandomTree::TestFeature(featuretype* feature)

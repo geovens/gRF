@@ -1,6 +1,6 @@
+
 #pragma once
-#include "Node.h"
-#include "stdafx.h"
+class Data;
 
 class Function
 {
@@ -15,8 +15,4 @@ public:
 	virtual int RandomABC(Node* node, featuretype *abc) = 0;
 	// test feature flag using random params abc
 	virtual int TestFeature(featuretype* feature, featuretype* abc) = 0;
-
-
-private:
-	featuretype* abcrange = NULL;
 };

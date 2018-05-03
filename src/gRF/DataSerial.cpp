@@ -69,30 +69,30 @@ void DataSerial::GetFeature(int index, featuretype* abc, featuretype* feature_ou
 	Elements[*ei]->GetFeature(index - EN[*ei], abc, feature_out, NULL);
 }
 
-valuetype* DataSerial::GetValueP(int index, int* ei)
+labeltype* DataSerial::GetLabelP(int index, int* ei)
 {
 	if (index < EN[*ei])
 		*ei = 0;
 	while (index >= EN[*ei + 1])
 		(*ei)++;
-	return Elements[*ei]->GetValueP(index - EN[*ei], NULL);
+	return Elements[*ei]->GetLabelP(index - EN[*ei], NULL);
 }
-void DataSerial::GetFeatureValue(int index, featuretype* abc, featuretype* feature_out, valuetype* value_out, int* ei)
+void DataSerial::GetFeatureLabel(int index, featuretype* abc, featuretype* feature_out, labeltype* label_out, int* ei)
 {
 	while (index >= EN[*ei + 1])
 		(*ei)++;
 	//Elements[*ei]->GetFeature(index - EN[*ei], abc, feature_out, NULL);
 	//*label_out = Elements[*ei]->GetLabel(index - EN[*ei], NULL);
-	Elements[*ei]->GetFeatureValue(index - EN[*ei], abc, feature_out, value_out, NULL);
+	Elements[*ei]->GetFeatureLabel(index - EN[*ei], abc, feature_out, label_out, NULL);
 }
 
-void DataSerial::GetValue(int index, valuetype* value_out, int* ei)
+void DataSerial::GetLabel(int index, labeltype* label_out, int* ei)
 {
 	if (index < EN[*ei])
 		*ei = 0;
 	while (index >= EN[*ei + 1])
 		(*ei)++;
-	Elements[*ei]->GetValue(index - EN[*ei], value_out, NULL);
+	Elements[*ei]->GetLabel(index - EN[*ei], label_out, NULL);
 }
 
 int DataSerial::SetReachedNode(int index, Node* prediction, int* ei)

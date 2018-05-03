@@ -16,6 +16,8 @@ int LinkerIndexerFile::InitFromData(Data* data)
 {
 	ThisData = data;
 	N = data->N;
+	LabelCount = new int[data->K];
+	memset(LabelCount, 0, data->K * sizeof(int));
 
 	// temp!
 	// the root node should not store a indexes file!
@@ -31,6 +33,9 @@ int LinkerIndexerFile::InitFromData(Data* data)
 	for (int i = 0; i < data->N; i++)
 	{
 		fwrite(&i, 4, 1, Indexes);
+		labeltype label;
+		data->GetLabel(i, &label, &GetLabelEI);
+		LabelCount[label]++;
 	}
 	//FastClose();
 	fclose(Indexes);
@@ -109,20 +114,20 @@ int LinkerIndexerFile::GetIndexFast()
 //		printf("ERROR: fread failed in DataPointersFile::GetFeaturePNext()\n");
 //	return ThisData->GetFeatureP(index, abc, &GetFeaturePEI);
 //}
-valuetype LinkerIndexerFile::GetValueNext()
+labeltype LinkerIndexerFile::GetLabelNext()
 {
 	int index;
 	int r = fread(&index, 1, 4, Indexes);
 	if (r != 4)
 		printf("ERROR: fread failed in DataPointersFile::GetLabelNext()\n");
-	valuetype v;
-	ThisData->GetValue(index, &v, &GetLabelEI);
-	return v;
+	labeltype label;
+	ThisData->GetLabel(index, &label, &GetLabelEI);
+	return label;
 }
-void LinkerIndexerFile::GetFeatureValueNext(featuretype* abc, featuretype* feature_out, valuetype* value_out)
+void LinkerIndexerFile::GetFeatureLabelNext(featuretype* abc, featuretype* feature_out, labeltype* label_out)
 {
 	int index = *(int*)Read4();
-	ThisData->GetFeatureValue(index, abc, feature_out, value_out, &GetFeatureLabelEI);
+	ThisData->GetFeatureLabel(index, abc, feature_out, label_out, &GetFeatureLabelEI);
 }
 void LinkerIndexerFile::SetSplitFlagNext(char flag)
 {
@@ -221,6 +226,8 @@ Linker** LinkerIndexerFile::Split()
 		strcpy(child[i]->SplitFlagsFileName, ifn);
 		strcat(child[i]->IndexesFileName, "indexes.bin");
 		strcat(child[i]->SplitFlagsFileName, "splitflags.bin");
+		child[i]->LabelCount = new int[ThisData->K];
+		memset(child[i]->LabelCount, 0, sizeof(int) * ThisData->K);
 
 		child[i]->Indexes = fopen(child[i]->IndexesFileName, "wb+");
 	}
@@ -233,7 +240,10 @@ Linker** LinkerIndexerFile::Split()
 	{
 		int index = GetIndexFast();
 		int flag = GetSplitFlagNext();
+		labeltype label;
+		ThisData->GetLabel(index, &label, &GetLabelEI);
 		ChildrenN[flag]++;
+		child[flag]->LabelCount[label]++;
 		fwrite(&index, 4, 1, child[flag]->Indexes);
 	}
 	FastClose();
@@ -290,6 +300,11 @@ int LinkerIndexerFile::Load(Node* node)
 
 	LoadByTest(node);
 
+	LabelCount = new int[node->ThisData->K];
+	memset(LabelCount, 0, node->ThisData->K * sizeof(int));
+	FastInit();
+	for (int i = 0; i < N; i++)
+		LabelCount[GetLabelNext()]++;
 	return 0;
 }
 
@@ -329,6 +344,8 @@ int LinkerIndexerFile::Release()
 		fclose(Indexes);
 	if (SplitFlagsFile != NULL)
 		fclose(SplitFlagsFile);
+	if (LabelCount != NULL)
+		delete LabelCount;
 	delete this;
 	return 0;
 }

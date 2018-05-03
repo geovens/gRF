@@ -17,12 +17,17 @@ public:
 	featuretype* ABC;
 	// whether this is a leaf node
 	bool IsLeaf;
+	//
+	int* SampleReachedCount;
+	// histogram of labels
+	double* HistLabels;
+	// the label of the mojority population.
+	int MajorLabel;
+	int SecondMajorLabel;
 	// whether this node has been trained
 	int Trained;
 	// type of this node
 	int Type;
-	// average value of all samples on this node
-	valuetype AverageValue;
 
 	// data of the entire tree;
 	Data* ThisData;
@@ -40,8 +45,15 @@ public:
 	int Split(featuretype* abc, featuretype* feature_temp_store, bool setsplitflags = false);
 	int SplitManyTimes(int times);
 	int CalEntropy(double* eout);
-	int Vote();
+	int CalEntropy2(double* eout);
 
-	// debug temp
-	int N;
+	// split samples into two groups according to ABC test
+	// output to *child[0] and *child[1]
+	int SplitPointers(Linker** child);
+
+	int Vote();
+	//int Train();
+	//int Test();
+
+	//int DrawSplitGrid();
 };

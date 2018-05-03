@@ -33,9 +33,9 @@ public:
 	
 	__declspec(dllexport) virtual featuretype* GetFeatureP(int index, featuretype* abc, int* ei);
 	__declspec(dllexport) virtual void GetFeature(int index, featuretype* abc, featuretype* feature_out, int* ei);
-	__declspec(dllexport) virtual valuetype* GetValueP(int index, int* ei);
-	__declspec(dllexport) virtual void GetFeatureValue(int index, featuretype* abc, featuretype* feature_out, valuetype* value_out, int* ei);
-	__declspec(dllexport) virtual void GetValue(int index, valuetype* value_out, int* ei);
+	__declspec(dllexport) virtual labeltype* GetLabelP(int index, int* ei);
+	__declspec(dllexport) virtual void GetFeatureLabel(int index, featuretype* abc, featuretype* feature_out, labeltype* label_out, int* ei);
+	__declspec(dllexport) virtual void GetLabel(int index, labeltype* label_out, int* ei);
 	__declspec(dllexport) virtual int SetReachedNode(int index, Node* prediction, int* ei);
 	__declspec(dllexport) virtual Node* GetReachedNode(int index, int* ei);
 

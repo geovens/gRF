@@ -29,10 +29,10 @@ public:
 	virtual int FastClose();
 	int GetIndexFast();
 	//virtual featuretype* GetFeaturePNext(featuretype* abc);
-	virtual valuetype GetValueNext();
-	virtual void GetFeatureValueNext(featuretype* abc, featuretype* feature_out, valuetype* value_out);
+	virtual labeltype GetLabelNext();
+	virtual void GetFeatureLabelNext(featuretype* abc, featuretype* feature_out, labeltype* label_out);
 	virtual void SetSplitFlagNext(char flag);
-	virtual char GetSplitFlagNext();
+	char GetSplitFlagNext();
 	//virtual Linker** NewChildren();
 	virtual int NewSplitFlags();
 	virtual Linker** Split();

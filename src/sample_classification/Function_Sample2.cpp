@@ -15,10 +15,9 @@ int Function_Sample2::TestFeature(featuretype* feature, featuretype* abc)
 
 int Function_Sample2::RandomABC(Node* node, featuretype* abc)
 {
-	
 	abc[0] = (featuretype)rand() / RAND_MAX; // a
 	abc[1] = (featuretype)rand() / RAND_MAX; // b
 	abc[2] = (featuretype)rand() / RAND_MAX; // c
-	abc[3] = (featuretype)rand() / RAND_MAX; // threshold
+	abc[3] = (featuretype)rand() / RAND_MAX * 200; // threshold
 	return 0;
 }

@@ -16,7 +16,6 @@ public:
 	int GetFeatureLabelindex;
 	int GetLabelindex;
 	int SetSplitFlagindex;
-	int GetSplitFlagindex;
 
 	int GetFeaturePEI;
 	int GetLabelPEI;
@@ -31,10 +30,9 @@ public:
 	virtual int FastInit();
 	virtual int FastClose();
 	int GetIndexFast();
-	virtual valuetype GetValueNext();
-	virtual void GetFeatureValueNext(featuretype* abc, featuretype* feature_out, valuetype* value_out);
+	virtual labeltype GetLabelNext();
+	virtual void GetFeatureLabelNext(featuretype* abc, featuretype* feature_out, labeltype* label_out);
 	virtual void SetSplitFlagNext(char flag);
-	virtual char GetSplitFlagNext();
 	virtual int NewSplitFlags();
 	virtual Linker** Split();
 	virtual int Load(Node* node);

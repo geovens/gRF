@@ -19,22 +19,26 @@ int LinkerPointer::InitFromData(Data* data)
 	N = 0;
 	PointerMemoryAlloCount = 0;
 	FeaturePointers = NULL;
+	//LabelPointers = NULL;
+	LabelCount = new int[data->K];
+	memset(LabelCount, 0, data->K * sizeof(int));
 
 	FastInit();
 	for (int i = 0; i < data->N; i++)
 	{
 		featuretype* fp;
-		valuetype lp;
+		labeltype lp;
 		fp = data->GetFeatureP(i, NULL, &GetFeaturePEI);
-		data->GetValue(i, &lp, &GetLabelPEI);
+		data->GetLabel(i, &lp, &GetLabelPEI);
 		AddPointer(fp, lp);
+		LabelCount[lp]++;
 	}
 	FastClose();
 
 	return 0;
 }
 
-int LinkerPointer::AddPointer(featuretype* feature, valuetype label)
+int LinkerPointer::AddPointer(featuretype* feature, labeltype label)
 {
 	if (N >= PointerMemoryAlloCount)
 	{
@@ -44,16 +48,16 @@ int LinkerPointer::AddPointer(featuretype* feature, valuetype label)
 			delete FeaturePointers;
 		FeaturePointers = newfpointers;
 
-		valuetype* newlpointers = new valuetype[PointerMemoryAlloCount * 2 + 1];
-		memcpy(newlpointers, Values, N * sizeof(valuetype));
-		if (Values != NULL)
-			delete Values;
-		Values = newlpointers;
+		labeltype* newlpointers = new labeltype[PointerMemoryAlloCount * 2 + 1];
+		memcpy(newlpointers, Labels, N * sizeof(labeltype));
+		if (Labels != NULL)
+			delete Labels;
+		Labels = newlpointers;
 
 		PointerMemoryAlloCount = PointerMemoryAlloCount * 2 + 1;
 	}
 	FeaturePointers[N] = feature;
-	Values[N] = label;
+	Labels[N] = label;
 	N++;
 	return 0;
 }
@@ -61,9 +65,8 @@ int LinkerPointer::AddPointer(featuretype* feature, valuetype label)
 int LinkerPointer::FastInit()
 {
 	GetFeaturep = FeaturePointers;
-	GetLabelp = Values;
+	GetLabelp = Labels;
 	SetSplitFlagp = SplitFlags;
-	GetSplitFlagp = SplitFlags;
 	return 0;
 }
 
@@ -78,17 +81,17 @@ int LinkerPointer::FastClose()
 //	GetFeaturep++;
 //	return r;
 //}
-valuetype LinkerPointer::GetValueNext()
+labeltype LinkerPointer::GetLabelNext()
 {
-	valuetype r = *GetLabelp;
+	labeltype r = *GetLabelp;
 	GetLabelp++;
 	return r;
 }
-void LinkerPointer::GetFeatureValueNext(featuretype* abc, featuretype* feature_out, valuetype* value_out)
+void LinkerPointer::GetFeatureLabelNext(featuretype* abc, featuretype* feature_out, labeltype* label_out)
 {
 	//*feature_out = *GetFeaturep;
 	memcpy(feature_out, *GetFeaturep, sizeof(featuretype)* ThisData->D);
-	*value_out = *GetLabelp;
+	*label_out = *GetLabelp;
 	GetFeaturep++;
 	GetLabelp++;
 }
@@ -96,12 +99,6 @@ void LinkerPointer::SetSplitFlagNext(char flag)
 {
 	*SetSplitFlagp = flag;
 	SetSplitFlagp++;
-}
-char LinkerPointer::GetSplitFlagNext()
-{
-	char flag = *GetSplitFlagp;
-	GetSplitFlagp++;
-	return flag;
 }
 
 //Linker** LinkerPointer::NewChildren()
@@ -135,22 +132,25 @@ Linker** LinkerPointer::Split()
 		child[i]->N = ChildrenN[i];
 		child[i]->Info = Info;
 		child[i]->FeaturePointers = new featuretype*[child[i]->N];
-		child[i]->Values = new valuetype[child[i]->N];
+		child[i]->Labels = new labeltype[child[i]->N];
+		child[i]->LabelCount = new int[ThisData->K];
+		memset(child[i]->LabelCount, 0, sizeof(int) * ThisData->K);
 	}
 
 	featuretype** childfp[2];
 	childfp[0] = child[0]->FeaturePointers;
 	childfp[1] = child[1]->FeaturePointers;
 	featuretype** fp = FeaturePointers;
-	valuetype* childlp[2];
-	childlp[0] = child[0]->Values;
-	childlp[1] = child[1]->Values;
-	valuetype* lp = Values;
+	labeltype* childlp[2];
+	childlp[0] = child[0]->Labels;
+	childlp[1] = child[1]->Labels;
+	labeltype* lp = Labels;
 	for (int i = 0; i < N; i++)
 	{
 		char flag = SplitFlags[i];
 		*childfp[flag] = *fp;
 		*childlp[flag] = *lp;
+		child[flag]->LabelCount[*lp]++;
 		childfp[flag]++;
 		childlp[flag]++;
 		fp++;
@@ -164,6 +164,8 @@ int LinkerPointer::Load(Node* node)
 {
 	ThisNode = node;
 	ThisData = node->ThisData;
+	LabelCount = new int[node->ThisData->K];
+	memset(LabelCount, 0, node->ThisData->K * sizeof(int));
 
 	FastInit();
 	int ei = 0;
@@ -174,14 +176,18 @@ int LinkerPointer::Load(Node* node)
 		Node* n = node->Tree->TestFeature(i, node->Level, &ei, feature_temp_store);
 		if (n == node)
 		{
-			valuetype value;
-			ThisData->GetValue(i, &value, &GetLabelPEI);
-			AddPointer(feature, value);
+			labeltype label;
+			ThisData->GetLabel(i, &label, &GetLabelPEI);
+			AddPointer(feature, label);
 		}
 	}
 	delete feature_temp_store;
 	FastClose();
 
+	FastInit();
+	for (int i = 0; i < N; i++)
+		LabelCount[GetLabelNext()]++;
+	FastClose();
 	return 0;
 }
 
@@ -189,10 +195,12 @@ int LinkerPointer::Release()
 {
 	if (FeaturePointers != NULL)
 		delete FeaturePointers;
-	if (Values != NULL)
-		delete Values;
+	if (Labels != NULL)
+		delete Labels;
 	if (SplitFlags != NULL)
 		delete SplitFlags;
+	if (LabelCount != NULL)
+		delete LabelCount;
 	delete this;
 	return 0;
 }

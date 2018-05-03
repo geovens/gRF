@@ -12,14 +12,13 @@ public:
 	
 
 	featuretype** FeaturePointers;
-	valuetype* Values;
+	labeltype* Labels;
 	// used by training process to mark which child node (left or right) each sample is supposed/upon forwarding to
 	char* SplitFlags;
 
 	featuretype** GetFeaturep;
-	valuetype* GetLabelp;
+	labeltype* GetLabelp;
 	char* SetSplitFlagp;
-	char* GetSplitFlagp;
 
 	int GetFeaturePEI;
 	int GetLabelPEI;
@@ -30,14 +29,13 @@ public:
 
 	LinkerPointer();
 	virtual int InitFromData(Data* data);
-	virtual int AddPointer(featuretype* feature, valuetype label);
+	virtual int AddPointer(featuretype* feature, labeltype label);
 	virtual int FastInit();
 	virtual int FastClose();
 	//virtual featuretype* GetFeatureNext(featuretype* abc);
-	virtual valuetype GetValueNext();
-	virtual void GetFeatureValueNext(featuretype* abc, featuretype* feature_out, valuetype* value_out);
+	virtual labeltype GetLabelNext();
+	virtual void GetFeatureLabelNext(featuretype* abc, featuretype* feature_out, labeltype* label_out);
 	virtual void SetSplitFlagNext(char flag);
-	virtual char GetSplitFlagNext();
 	virtual int NewSplitFlags();
 	//virtual Linker** NewChildren();
 	virtual Linker** Split();

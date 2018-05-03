@@ -13,12 +13,12 @@ public:
 	int ID;
 	// max allowed depth of tree
 	int MaxDepth;
+	// max allowed number of threads
+	int MaxThreadNumber;
 	// real depth of tree
 	int Depth;
-	// how many times the process that params abc is random selected and entropy is calculated is done on each node.
+	// how many times the process that params abc is random selected and entropy is calculated is done on each node
 	int CandidatesEachNode;
-	// number of threads used for training
-	int MaxThreadNumber;
 	// a pointer to the root node
 	Node* Root;
 	// decision function used to split samples on each node
@@ -42,9 +42,9 @@ public:
 	__declspec(dllexport) int Grow(Node* node);
 	__declspec(dllexport) int PlantGrowFull(int depth);
 	__declspec(dllexport) int ReadNodeFile();
-	__declspec(dllexport) int Train(Data* data, int linkermode);
-	__declspec(dllexport) int Test(Data* data);
-	__declspec(dllexport) int Test(Data* data, int level);
+	__declspec(dllexport) int Train(Data* data, int pointermode);
+	__declspec(dllexport) double Test(Data* data);
+	__declspec(dllexport) double Test(Data* data, int level);
 	__declspec(dllexport) Node* TestFeature(featuretype* feature);
 	__declspec(dllexport) Node* TestFeature(featuretype* feature, int level);
 	__declspec(dllexport) Node* TestFeature(int index, int* ei, featuretype* feature_temp_store);

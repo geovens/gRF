@@ -72,8 +72,17 @@ int RandomForest::Train(Data* data, int linkermode)
 
 int RandomForest::Test(Data* data)
 {
+	double* hist = new double[data->K];
+	for (int k = 0; k < data->K; k++)
+		hist[k] = 0;
+
 	data->ReachedNodes = new Node*[data->N];
-	data->Predictions = new valuetype[data->N];
+	data->Predictions = new labeltype*[3];
+	data->Predictions[0] = new labeltype[data->N];
+	data->Predictions[1] = new labeltype[data->N];
+	data->Predictions[2] = new labeltype[data->N];
+	data->PredictionHists = new double*[data->N];
+
 
 	for (int n = 0; n < TreeCount; n++)
 	{
@@ -89,29 +98,78 @@ int RandomForest::Test(Data* data)
 	featuretype* feature_temp_store = new featuretype[data->D];
 	for (int i = 0; i < data->N; i++)
 	{
-		valuetype sum = 0;
-		int sumn = 0;
+		data->PredictionHists[i] = new double[data->K];
+		for (int k = 0; k < data->K; k++)
+			hist[k] = 0;
+
 		Node* node = NULL;
 		for (int n = 0; n < TreeCount; n++)
 		{
 			node = Trees[n].TestFeature(i, ei + n, feature_temp_store);
-			sum += node->AverageValue * node->N;
-			//sum += node->AverageValue;
-			sumn += node->N;
-			if (node->N == 0) printf("WARNING: N==0");
+			for (int k = 0; k < data->K; k++)
+			{
+				//hist[k] += node->SampleReachedCount[k];
+				hist[k] += node->HistLabels[k];
+			}
 		}
 
-		data->Predictions[i] = sum / sumn;
-		//data->Predictions[i] = sum / TreeCount;
 		data->SetReachedNode(i, node, &EInode);
+		memcpy(data->PredictionHists[i], hist, sizeof(double) * data->K);
+
+		double maxvote = 0;
+		int maxk = 0;
+		for (int k = 0; k < data->K; k++)
+		{
+			if (hist[k] > maxvote)
+			{
+				maxvote = hist[k];
+				maxk = k;
+			}
+		}
+		data->Predictions[0][i] = maxk;
+		double maxvote2 = 0;
+		int maxk2 = 0;
+		for (int k = 0; k < data->K; k++)
+		{
+			if (k != maxk && hist[k] > maxvote2)
+			{
+				maxvote2 = hist[k];
+				maxk2 = k;
+			}
+		}
+		if (maxk2 == 0 && maxvote2 == 0)
+			data->Predictions[1][i] = -1;
+		else
+			data->Predictions[1][i] = maxk2;
+		double maxvote3 = 0;
+		int maxk3 = 0;
+		for (int k = 0; k < data->K; k++)
+		{
+			if (k != maxk && k != maxk2 && hist[k] > maxvote3)
+			{
+				maxvote3 = hist[k];
+				maxk3 = k;
+			}
+		}
+		if (maxk3 == 0 && maxvote3 == 0)
+			data->Predictions[2][i] = -1;
+		else
+			data->Predictions[2][i] = maxk3;
 	}
+	delete hist;
 	return 0;
 }
 
 int RandomForest::Test(Data* data, int level)
 {
-	data->ReachedNodes = new Node*[data->N];
-	data->Predictions = new valuetype[data->N];
+	double* hist = new double[data->K];
+	for (int k = 0; k < data->K; k++)
+		hist[k] = 0;
+	data->Predictions = new labeltype*[3];
+	data->Predictions[0] = new labeltype[data->N];
+	data->Predictions[1] = new labeltype[data->N];
+	data->Predictions[2] = new labeltype[data->N];
+	data->PredictionHists = new double*[data->N];
 
 	for (int n = 0; n < TreeCount; n++)
 	{
@@ -127,20 +185,64 @@ int RandomForest::Test(Data* data, int level)
 	featuretype* feature_temp_store = new featuretype[data->D];
 	for (int i = 0; i < data->N; i++)
 	{
-		valuetype sum = 0;
-		int sumn = 0;
+		data->PredictionHists[i] = new double[data->K];
+		for (int k = 0; k < data->K; k++)
+			hist[k] = 0;
+
 		Node* node = NULL;
 		for (int n = 0; n < TreeCount; n++)
 		{
 			node = Trees[n].TestFeature(i, level, ei + n, feature_temp_store);
-			sum += node->AverageValue * node->N;
-			//sum += node->AverageValue;
-			sumn += node->N;
+			for (int k = 0; k < data->K; k++)
+			{
+				//hist[k] += node->SampleReachedCount[k];
+				hist[k] += node->HistLabels[k];
+			}
 		}
 
-		data->Predictions[i] = sum / sumn;
-		//data->Predictions[i] = sum / TreeCount;
 		data->SetReachedNode(i, node, &EInode);
+		memcpy(data->PredictionHists[i], hist, sizeof(double) * data->K);
+
+		double maxvote = 0;
+		int maxk = 0;
+		for (int k = 0; k < data->K; k++)
+		{
+			if (hist[k] > maxvote)
+			{
+				maxvote = hist[k];
+				maxk = k;
+			}
+		}
+		data->Predictions[0][i] = maxk;
+		double maxvote2 = 0;
+		int maxk2 = 0;
+		for (int k = 0; k < data->K; k++)
+		{
+			if (k != maxk && hist[k] > maxvote2)
+			{
+				maxvote2 = hist[k];
+				maxk2 = k;
+			}
+		}
+		if (maxk2 == 0 && maxvote2 == 0)
+			data->Predictions[1][i] = -1;
+		else
+			data->Predictions[1][i] = maxk2;
+		double maxvote3 = 0;
+		int maxk3 = 0;
+		for (int k = 0; k < data->K; k++)
+		{
+			if (k != maxk && k != maxk2 && hist[k] > maxvote3)
+			{
+				maxvote3 = hist[k];
+				maxk3 = k;
+			}
+		}
+		if (maxk3 == 0 && maxvote3 == 0)
+			data->Predictions[2][i] = -1;
+		else
+			data->Predictions[2][i] = maxk3;
 	}
+	delete hist;
 	return 0;
 }

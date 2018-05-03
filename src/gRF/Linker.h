@@ -12,17 +12,20 @@ public:
 	Node* ThisNode;
 	void* Info;
 
-	// used by training process to record values when testing different abcs in orther to calculate average value of children
+	// number of samples in each class
+	int* LabelCount;
+
+	// used by training process to record numbers when testing different abcs in orther to calculate entropy
 	int ChildrenN[2];
+	int** ChildrenLabelCount;
 
 	virtual int InitFromData(Data* data) = 0;
 	virtual int FastInit() = 0;
 	virtual int FastClose() = 0;
 	//virtual featuretype* GetFeatureNext(featuretype* abc);
-	virtual valuetype GetValueNext() = 0;
-	virtual void GetFeatureValueNext(featuretype* abc, featuretype* feature_out, valuetype* value_out) = 0;
+	virtual labeltype GetLabelNext() = 0;
+	virtual void GetFeatureLabelNext(featuretype* abc, featuretype* feature_out, labeltype* label_out) = 0;
 	virtual void SetSplitFlagNext(char flag) = 0;
-	virtual char GetSplitFlagNext() = 0;
 	virtual int NewSplitFlags() = 0;
 	//virtual Linker** NewChildren() = 0;
 	virtual Linker** Split() = 0;
