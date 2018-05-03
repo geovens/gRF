@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="Model_xy.h" />
+    <ClInclude Include="Function_xy_elps.h" />
+    <ClInclude Include="Function_xy_line.h" />
+    <ClInclude Include="Function_xy_sin.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="sample_xy.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="Model_xy.cpp" />
+    <ClCompile Include="Function_xy_elps.cpp" />
+    <ClCompile Include="Function_xy_line.cpp" />
+    <ClCompile Include="Function_xy_sin.cpp" />
+  </ItemGroup>
+</Project>

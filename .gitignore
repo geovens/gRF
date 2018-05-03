@@ -1,0 +1,12 @@
+build
+bin
+
+*.pdb
+*.exp
+*.sdf
+*.suo
+*.opensdf
+*.db
+*.opendb
+*.iobj
+*.ipdb
