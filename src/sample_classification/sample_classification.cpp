@@ -157,20 +157,27 @@ void Sample2()
 	Function* decisionfunc = new Function_Sample2();
 	forest.SetFunction(decisionfunc);
 
-	// generates training data
+	// generates training data, organized in 3 hierarchical levels
 	DataSerial* TrainingData = new DataSerial();
 	TrainingData->D = 1;
 	TrainingData->K = 100;
-	for (int d = 0; d < TrainingN; d++)
+	for (int group = 0; group < 5; group++)
 	{
-		Data_Sample2* adata = new Data_Sample2();
-		adata->D = 1;
-		adata->K = 100;
-		adata->N = 1;
-		adata->l = rand() % 100; // 0 ~ 99
-		adata->x = 2 * adata->l;
-		adata->x_noise = (featuretype)rand() / RAND_MAX * 200;
-		TrainingData->AddElement(adata);
+		DataSerial* SampleGroup = new DataSerial();
+		SampleGroup->D = 1;
+		SampleGroup->K = 100;
+		for (int d = 0; d < TrainingN / 5; d++)
+		{
+			Data_Sample2* OneSample = new Data_Sample2();
+			OneSample->D = 1;
+			OneSample->K = 100;
+			OneSample->N = 1;
+			OneSample->l = rand() % 100; // 0 ~ 99
+			OneSample->x = 2 * OneSample->l;
+			OneSample->x_noise = (featuretype)rand() / RAND_MAX * 200;
+			SampleGroup->AddElement(OneSample);
+		}
+		TrainingData->AddElement(SampleGroup);
 	}
 
 	// train the forest with the training data
@@ -182,20 +189,27 @@ void Sample2()
 		return;
 	}
 
-	// generating testing data
+	// generating testing data, organized in 3 hierarchical levels
 	DataSerial* TestingData = new DataSerial();
 	TestingData->D = 1;
 	TestingData->K = 100;
-	for (int d = 0; d < TestingN; d++)
+	for (int group = 0; group < 5; group++)
 	{
-		Data_Sample2* adata = new Data_Sample2();
-		adata->D = 1;
-		adata->K = 100;
-		adata->N = 1;
-		adata->l = rand() % 100; // 0 ~ 99
-		adata->x = 2 * adata->l;
-		adata->x_noise = (featuretype)rand() / RAND_MAX * 200; // from 0 to 200, same range as the meaningful feature values
-		TestingData->AddElement(adata);
+		DataSerial* SampleGroup = new DataSerial();
+		SampleGroup->D = 1;
+		SampleGroup->K = 100;
+		for (int d = 0; d < TestingN / 5; d++)
+		{
+			Data_Sample2* OneSample = new Data_Sample2();
+			OneSample->D = 1;
+			OneSample->K = 100;
+			OneSample->N = 1;
+			OneSample->l = rand() % 100; // 0 ~ 99
+			OneSample->x = 2 * OneSample->l;
+			OneSample->x_noise = (featuretype)rand() / RAND_MAX * 200; // from 0 to 200, same range as the meaningful feature values
+			SampleGroup->AddElement(OneSample);
+		}
+		TestingData->AddElement(SampleGroup);
 	}
 
 	// test the testing data using the trained forest
@@ -205,11 +219,16 @@ void Sample2()
 	int wrong = 0;
 	for (int d = 0; d < TestingData->N; d++)
 	{
-		featuretype x = ((Data_Sample2*)(TestingData->Elements[d]))->x;
-		labeltype l = ((Data_Sample2*)(TestingData->Elements[d]))->l;
-		labeltype prediction = TestingData->GetPrediction(d);
-		printf("(%f) -> label %d (ground truth is label %d)\n", x, prediction, l);
-		wrong += prediction != l ? 1 : 0;
+		int local_index_out;
+		Data_Sample2* thesample = (Data_Sample2*)(TestingData->GetSample(d, &local_index_out));
+		
+		labeltype prediction;
+		prediction = TestingData->GetPrediction(d);
+		// or
+		prediction = thesample->GetPrediction(local_index_out);
+		
+		printf("(%f) -> label %d (ground truth is label %d)\n", thesample->x, prediction, thesample->l);
+		wrong += prediction != thesample->l ? 1 : 0;
 	}
 	printf("error rate: %f\n", (float)wrong / TestingData->N);
 
@@ -218,7 +237,7 @@ void Sample2()
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	Sample1();
-	//Sample2();
+	//Sample1();
+	Sample2();
 	return 0;
 }

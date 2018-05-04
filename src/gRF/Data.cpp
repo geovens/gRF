@@ -94,6 +94,12 @@ void Data::GetLabel(int index, labeltype* label_out)
 	*label_out = *(Labels + index);
 }
 
+Data* Data::GetSample(int index, int* local_index_out)
+{
+	*local_index_out = index;
+	return this;
+}
+
 int Data::SetReachedNode(int index, Node* node)
 {
 	if (ReachedNodes == NULL)

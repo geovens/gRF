@@ -77,6 +77,14 @@ void DataSerial::GetLabel(int index, labeltype* label_out)
 	Elements[ei]->GetLabel(index - EN[ei], label_out);
 }
 
+Data* DataSerial::GetSample(int index, int* local_index_out)
+{
+	int ei = 0;
+	while (index >= EN[ei + 1])
+		ei++;
+	return Elements[ei]->GetSample(index - EN[ei], local_index_out);;
+}
+
 int DataSerial::SetReachedNode(int index, Node* prediction)
 {
 	int ei = 0;

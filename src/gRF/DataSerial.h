@@ -33,6 +33,7 @@ public:
 	__declspec(dllexport) virtual void GetFeatureLabel(int index, featuretype* abc, featuretype* feature_out, labeltype* label_out);
 	__declspec(dllexport) virtual void GetLabel(int index, labeltype* label_out);
 
+	__declspec(dllexport) virtual Data* GetSample(int index, int* local_index_out);
 	__declspec(dllexport) virtual int SetPrediction(int index, labeltype prediction);
 	__declspec(dllexport) virtual labeltype GetPrediction(int index);
 	__declspec(dllexport) virtual int SetPrediction2(int index, labeltype prediction);
