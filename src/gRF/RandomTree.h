@@ -47,9 +47,9 @@ public:
 	__declspec(dllexport) double Test(Data* data, int level);
 	__declspec(dllexport) Node* TestFeature(featuretype* feature);
 	__declspec(dllexport) Node* TestFeature(featuretype* feature, int level);
-	__declspec(dllexport) Node* TestFeature(int index, int* ei, featuretype* feature_temp_store);
-	__declspec(dllexport) Node* TestFeature(int index, int level, int* ei, featuretype* feature_temp_store);
-	__declspec(dllexport) bool TestFeatureReach(int index, Node* node, int* ei, featuretype* feature);
+	__declspec(dllexport) Node* TestFeature(int index, featuretype* feature_temp_store);
+	__declspec(dllexport) Node* TestFeature(int index, int level, featuretype* feature_temp_store);
+	__declspec(dllexport) bool TestFeatureReach(int index, Node* node, featuretype* feature);
 	__declspec(dllexport) Node* FindNode(int level, unsigned long long index);
 	static int NewThread(void* lpParameter);
 

@@ -9,7 +9,6 @@ LinkerIndexerFile::LinkerIndexerFile()
 {
 	Indexes = NULL;
 	ReadBuffPend = ReadBuff + 508;
-	GetFeatureLabelEI = 0;
 }
 
 int LinkerIndexerFile::InitFromData(Data* data)
@@ -27,17 +26,15 @@ int LinkerIndexerFile::InitFromData(Data* data)
 	strcat(SplitFlagsFileName, "splitflags.bin");
 	Indexes = fopen(IndexesFileName, "wb+");
 	fwrite(&N, 1, 4, Indexes);
-	//fclose(Indexes);
-	//FastInit();
-	GetLabelEI = 0;
+
 	for (int i = 0; i < data->N; i++)
 	{
 		fwrite(&i, 4, 1, Indexes);
 		labeltype label;
-		data->GetLabel(i, &label, &GetLabelEI);
+		data->GetLabel(i, &label);
 		LabelCount[label]++;
 	}
-	//FastClose();
+
 	fclose(Indexes);
 	Indexes = NULL;
 
@@ -81,10 +78,6 @@ int LinkerIndexerFile::FastInit()
 	}
 	ReadBuffP = ReadBuff + 65536;
 	//ReadBuffPend = ReadBuff - 1;
-	GetFeaturePEI = 0;
-	GetLabelPEI = 0;
-	GetFeatureLabelEI = 0;
-	GetLabelEI = 0;
 	return 0;
 }
 
@@ -121,13 +114,13 @@ labeltype LinkerIndexerFile::GetLabelNext()
 	if (r != 4)
 		printf("ERROR: fread failed in DataPointersFile::GetLabelNext()\n");
 	labeltype label;
-	ThisData->GetLabel(index, &label, &GetLabelEI);
+	ThisData->GetLabel(index, &label);
 	return label;
 }
 void LinkerIndexerFile::GetFeatureLabelNext(featuretype* abc, featuretype* feature_out, labeltype* label_out)
 {
 	int index = *(int*)Read4();
-	ThisData->GetFeatureLabel(index, abc, feature_out, label_out, &GetFeatureLabelEI);
+	ThisData->GetFeatureLabel(index, abc, feature_out, label_out);
 }
 void LinkerIndexerFile::SetSplitFlagNext(char flag)
 {
@@ -241,7 +234,7 @@ Linker** LinkerIndexerFile::Split()
 		int index = GetIndexFast();
 		int flag = GetSplitFlagNext();
 		labeltype label;
-		ThisData->GetLabel(index, &label, &GetLabelEI);
+		ThisData->GetLabel(index, &label);
 		ChildrenN[flag]++;
 		child[flag]->LabelCount[label]++;
 		fwrite(&index, 4, 1, child[flag]->Indexes);
@@ -316,12 +309,11 @@ int LinkerIndexerFile::LoadByTest(Node* node)
 
 	N = 0;
 	FastInit();
-	int ei = 0;
 	featuretype* feature_temp_store = new featuretype[ThisData->D];
 	for (int i = 0; i < ThisData->N; i++)
 	{
 		//featuretype* feature = ThisData->GetFeatureP(i, NULL, &GetFeaturePEI);
-		Node* n = node->Tree->TestFeature(i, node->Level, &ei, feature_temp_store);
+		Node* n = node->Tree->TestFeature(i, node->Level, feature_temp_store);
 		if (n == node)
 		{
 			N++;

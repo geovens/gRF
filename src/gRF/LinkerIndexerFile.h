@@ -17,11 +17,6 @@ public:
 	char* ReadBuffP;
 	char* ReadBuffPend;
 
-	int GetFeaturePEI;
-	int GetLabelPEI;
-	int GetFeatureLabelEI;
-	int GetLabelEI;
-
 	LinkerIndexerFile();
 	virtual int InitFromData(Data* data);
 	char* Read4();

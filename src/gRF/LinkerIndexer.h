@@ -17,11 +17,6 @@ public:
 	int GetLabelindex;
 	int SetSplitFlagindex;
 
-	int GetFeaturePEI;
-	int GetLabelPEI;
-	int GetFeatureLabelEI;
-	int GetLabelEI;
-
 	int IndexesMemoryAlloCount;
 
 	LinkerIndexer();

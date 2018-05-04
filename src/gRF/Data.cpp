@@ -59,7 +59,7 @@ int Data::CalLabelPercentage()
 	for (int i = 0; i < N; i++)
 	{
 		labeltype label;
-		GetLabel(i, &label, &ei);
+		GetLabel(i, &label);
 		LabelPercentage[label]++;
 	}
 	for (int k = 0; k < K; k++)
@@ -67,34 +67,34 @@ int Data::CalLabelPercentage()
 	return 0;
 }
 
-featuretype* Data::GetFeatureP(int index, featuretype* abc, int* ei)
+featuretype* Data::GetFeatureP(int index, featuretype* abc)
 {
 	return Features + index * D;
 }
 
-void Data::GetFeature(int index, featuretype* abc, featuretype* feature_out, int* ei)
+void Data::GetFeature(int index, featuretype* abc, featuretype* feature_out)
 {
 	//*feature_out = Features + index * D;
 	memcpy(feature_out, Features + index * D, sizeof(featuretype)* D);
 }
 
-labeltype* Data::GetLabelP(int index, int* ei)
+labeltype* Data::GetLabelP(int index)
 {
 	return Labels + index;
 }
 
-void Data::GetFeatureLabel(int index, featuretype* abc, featuretype* feature_out, labeltype* label_out, int* ei)
+void Data::GetFeatureLabel(int index, featuretype* abc, featuretype* feature_out, labeltype* label_out)
 {
-	GetFeature(index, abc, feature_out, ei);
-	GetLabel(index, label_out, ei);
+	GetFeature(index, abc, feature_out);
+	GetLabel(index, label_out);
 }
 
-void Data::GetLabel(int index, labeltype* label_out, int* ei)
+void Data::GetLabel(int index, labeltype* label_out)
 {
 	*label_out = *(Labels + index);
 }
 
-int Data::SetReachedNode(int index, Node* node, int* ei)
+int Data::SetReachedNode(int index, Node* node)
 {
 	if (ReachedNodes == NULL)
 		ReachedNodes = new Node*[N];
@@ -102,11 +102,56 @@ int Data::SetReachedNode(int index, Node* node, int* ei)
 	return 0;
 }
 
-Node* Data::GetReachedNode(int index, int* ei)
+Node* Data::GetReachedNode(int index)
 {
 	if (ReachedNodes == NULL)
 		return NULL;
 	return ReachedNodes[index];
+}
+
+int Data::SetPrediction(int index, labeltype prediction)
+{
+	if (Predictions == NULL)
+		Predictions = new labeltype[N];
+	Predictions[index] = prediction;
+	return 0;
+}
+
+labeltype Data::GetPrediction(int index)
+{
+	if (Predictions == NULL)
+		return -99;
+	return Predictions[index];
+}
+
+int Data::SetPrediction2(int index, labeltype prediction)
+{
+	if (Predictions2 == NULL)
+		Predictions2 = new labeltype[N];
+	Predictions2[index] = prediction;
+	return 0;
+}
+
+labeltype Data::GetPrediction2(int index)
+{
+	if (Predictions2 == NULL)
+		return -99;
+	return Predictions2[index];
+}
+
+int Data::SetPrediction3(int index, labeltype prediction)
+{
+	if (Predictions3 == NULL)
+		Predictions3 = new labeltype[N];
+	Predictions3[index] = prediction;
+	return 0;
+}
+
+labeltype Data::GetPrediction3(int index)
+{
+	if (Predictions3 == NULL)
+		return -99;
+	return Predictions3[index];
 }
 
 int Data::Release()

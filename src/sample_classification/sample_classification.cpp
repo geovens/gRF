@@ -104,8 +104,9 @@ void Sample1()
 	labelp = TestingData->Labels;
 	for (int d = 0; d < TestingData->N; d++)
 	{
-		printf("(%f,%f) -> label %d (ground truth is label %d)\n", featurep[0], featurep[1], TestingData->Predictions[0][d], *labelp);
-		wrong += TestingData->Predictions[0][d] != *labelp ? 1 : 0;
+		labeltype prediction = TestingData->GetPrediction(d);
+		printf("(%f,%f) -> label %d (ground truth is label %d)\n", featurep[0], featurep[1], prediction, *labelp);
+		wrong += prediction != *labelp ? 1 : 0;
 
 		featurep += TestingData->D;
 		labelp++;
@@ -206,8 +207,9 @@ void Sample2()
 	{
 		featuretype x = ((Data_Sample2*)(TestingData->Elements[d]))->x;
 		labeltype l = ((Data_Sample2*)(TestingData->Elements[d]))->l;
-		printf("(%f) -> label %d (ground truth is label %d)\n", x, TestingData->Predictions[0][d], l);
-		wrong += TestingData->Predictions[0][d] != l ? 1 : 0;
+		labeltype prediction = TestingData->GetPrediction(d);
+		printf("(%f) -> label %d (ground truth is label %d)\n", x, prediction, l);
+		wrong += prediction != l ? 1 : 0;
 	}
 	printf("error rate: %f\n", (float)wrong / TestingData->N);
 

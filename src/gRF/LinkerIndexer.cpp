@@ -25,7 +25,7 @@ int LinkerIndexer::InitFromData(Data* data)
 	for (int i = 0; i < data->N; i++)
 	{
 		labeltype lp;
-		data->GetLabel(i, &lp, &ei);
+		data->GetLabel(i, &lp);
 		AddIndex(i);
 		LabelCount[lp]++;
 	}
@@ -55,9 +55,6 @@ int LinkerIndexer::FastInit()
 	GetFeatureLabelindex = 0;
 	GetLabelindex = 0;
 	SetSplitFlagindex = 0;
-	GetFeatureLabelEI = 0;
-	GetLabelEI = 0;
-	GetLabelPEI = 0;
 	return 0;
 }
 
@@ -75,7 +72,7 @@ int LinkerIndexer::FastClose()
 labeltype LinkerIndexer::GetLabelNext()
 {
 	labeltype r;
-	ThisData->GetLabel(Indexes[GetLabelindex], &r, &GetLabelEI);
+	ThisData->GetLabel(Indexes[GetLabelindex], &r);
 	GetLabelindex++;
 	return r;
 }
@@ -83,7 +80,7 @@ void LinkerIndexer::GetFeatureLabelNext(featuretype* abc, featuretype* feature_o
 {
 	//featuretype* feature;
 	//labeltype label;
-	ThisData->GetFeatureLabel(Indexes[GetFeatureindex], abc, feature_out, label_out, &GetFeatureLabelEI);
+	ThisData->GetFeatureLabel(Indexes[GetFeatureindex], abc, feature_out, label_out);
 	GetFeatureindex++;
 }
 void LinkerIndexer::SetSplitFlagNext(char flag)
@@ -189,13 +186,12 @@ Linker** LinkerIndexer::Split()
 	childfp[0] = child[0]->Indexes;
 	childfp[1] = child[1]->Indexes;
 	int* fp = Indexes;
-	int ei = 0;
 	for (int i = 0; i < N; i++)
 	{
 		char flag = SplitFlags[i];
 		*childfp[flag] = *fp;
 		labeltype lb;
-		ThisData->GetLabel(*fp, &lb, &ei);
+		ThisData->GetLabel(*fp, &lb);
 		child[flag]->LabelCount[lb]++;
 		childfp[flag]++;
 		fp++;
@@ -213,14 +209,13 @@ int LinkerIndexer::Load(Node* node)
 	memset(LabelCount, 0, node->ThisData->K * sizeof(int));
 
 	FastInit();
-	int ei = 0;
 	featuretype* feature_temp_store = new featuretype[ThisData->D];
 	for (int i = 0; i < ThisData->N; i++)
 	{
 		//featuretype* feature = ThisData->GetFeatureP(i, NULL, &GetFeaturePEI);
 		//Node* n = node->Tree->TestFeature(i, node->Level);
 		//if (n == node)
-		if (node->Tree->TestFeatureReach(i, node, &ei, feature_temp_store))
+		if (node->Tree->TestFeatureReach(i, node, feature_temp_store))
 		{
 			AddIndex(i);
 		}

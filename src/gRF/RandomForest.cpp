@@ -76,11 +76,6 @@ int RandomForest::Test(Data* data)
 	for (int k = 0; k < data->K; k++)
 		hist[k] = 0;
 
-	data->ReachedNodes = new Node*[data->N];
-	data->Predictions = new labeltype*[3];
-	data->Predictions[0] = new labeltype[data->N];
-	data->Predictions[1] = new labeltype[data->N];
-	data->Predictions[2] = new labeltype[data->N];
 	data->PredictionHists = new double*[data->N];
 
 
@@ -92,9 +87,6 @@ int RandomForest::Test(Data* data)
 		//printf("recognition rate of tree no.%d: %lf\n", n, rec);
 	}
 
-	int* ei = new int[TreeCount];
-	memset(ei, 0, sizeof(int) * TreeCount);
-	int EInode = 0;
 	featuretype* feature_temp_store = new featuretype[data->D];
 	for (int i = 0; i < data->N; i++)
 	{
@@ -105,7 +97,7 @@ int RandomForest::Test(Data* data)
 		Node* node = NULL;
 		for (int n = 0; n < TreeCount; n++)
 		{
-			node = Trees[n].TestFeature(i, ei + n, feature_temp_store);
+			node = Trees[n].TestFeature(i, feature_temp_store);
 			for (int k = 0; k < data->K; k++)
 			{
 				//hist[k] += node->SampleReachedCount[k];
@@ -113,7 +105,7 @@ int RandomForest::Test(Data* data)
 			}
 		}
 
-		data->SetReachedNode(i, node, &EInode);
+		data->SetReachedNode(i, node);
 		memcpy(data->PredictionHists[i], hist, sizeof(double) * data->K);
 
 		double maxvote = 0;
@@ -126,7 +118,8 @@ int RandomForest::Test(Data* data)
 				maxk = k;
 			}
 		}
-		data->Predictions[0][i] = maxk;
+		data->SetPrediction(i, maxk);
+
 		double maxvote2 = 0;
 		int maxk2 = 0;
 		for (int k = 0; k < data->K; k++)
@@ -138,9 +131,10 @@ int RandomForest::Test(Data* data)
 			}
 		}
 		if (maxk2 == 0 && maxvote2 == 0)
-			data->Predictions[1][i] = -1;
+			data->SetPrediction2(i, -1);
 		else
-			data->Predictions[1][i] = maxk2;
+			data->SetPrediction2(i, maxk2);
+
 		double maxvote3 = 0;
 		int maxk3 = 0;
 		for (int k = 0; k < data->K; k++)
@@ -152,9 +146,9 @@ int RandomForest::Test(Data* data)
 			}
 		}
 		if (maxk3 == 0 && maxvote3 == 0)
-			data->Predictions[2][i] = -1;
+			data->SetPrediction3(i, -1);
 		else
-			data->Predictions[2][i] = maxk3;
+			data->SetPrediction3(i, maxk3);
 	}
 	delete hist;
 	return 0;
@@ -165,10 +159,6 @@ int RandomForest::Test(Data* data, int level)
 	double* hist = new double[data->K];
 	for (int k = 0; k < data->K; k++)
 		hist[k] = 0;
-	data->Predictions = new labeltype*[3];
-	data->Predictions[0] = new labeltype[data->N];
-	data->Predictions[1] = new labeltype[data->N];
-	data->Predictions[2] = new labeltype[data->N];
 	data->PredictionHists = new double*[data->N];
 
 	for (int n = 0; n < TreeCount; n++)
@@ -179,9 +169,6 @@ int RandomForest::Test(Data* data, int level)
 		//printf("recognition rate of tree no.%d: %lf\n", n, rec);
 	}
 
-	int* ei = new int[TreeCount];
-	memset(ei, 0, sizeof(int)* TreeCount);
-	int EInode = 0;
 	featuretype* feature_temp_store = new featuretype[data->D];
 	for (int i = 0; i < data->N; i++)
 	{
@@ -192,7 +179,7 @@ int RandomForest::Test(Data* data, int level)
 		Node* node = NULL;
 		for (int n = 0; n < TreeCount; n++)
 		{
-			node = Trees[n].TestFeature(i, level, ei + n, feature_temp_store);
+			node = Trees[n].TestFeature(i, level, feature_temp_store);
 			for (int k = 0; k < data->K; k++)
 			{
 				//hist[k] += node->SampleReachedCount[k];
@@ -200,7 +187,7 @@ int RandomForest::Test(Data* data, int level)
 			}
 		}
 
-		data->SetReachedNode(i, node, &EInode);
+		data->SetReachedNode(i, node);
 		memcpy(data->PredictionHists[i], hist, sizeof(double) * data->K);
 
 		double maxvote = 0;
@@ -213,7 +200,8 @@ int RandomForest::Test(Data* data, int level)
 				maxk = k;
 			}
 		}
-		data->Predictions[0][i] = maxk;
+		data->SetPrediction(i, maxk);
+
 		double maxvote2 = 0;
 		int maxk2 = 0;
 		for (int k = 0; k < data->K; k++)
@@ -225,9 +213,10 @@ int RandomForest::Test(Data* data, int level)
 			}
 		}
 		if (maxk2 == 0 && maxvote2 == 0)
-			data->Predictions[1][i] = -1;
+			data->SetPrediction2(i, -1);
 		else
-			data->Predictions[1][i] = maxk2;
+			data->SetPrediction2(i, maxk2);
+
 		double maxvote3 = 0;
 		int maxk3 = 0;
 		for (int k = 0; k < data->K; k++)
@@ -239,9 +228,9 @@ int RandomForest::Test(Data* data, int level)
 			}
 		}
 		if (maxk3 == 0 && maxvote3 == 0)
-			data->Predictions[2][i] = -1;
+			data->SetPrediction3(i, -1);
 		else
-			data->Predictions[2][i] = maxk3;
+			data->SetPrediction3(i, maxk3);
 	}
 	delete hist;
 	return 0;

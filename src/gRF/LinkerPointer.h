@@ -20,11 +20,6 @@ public:
 	labeltype* GetLabelp;
 	char* SetSplitFlagp;
 
-	int GetFeaturePEI;
-	int GetLabelPEI;
-	int GetFeatureLabelEI;
-	int GetLabelEI;
-
 	int PointerMemoryAlloCount;
 
 	LinkerPointer();
