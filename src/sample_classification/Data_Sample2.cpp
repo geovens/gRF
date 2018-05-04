@@ -11,7 +11,7 @@ void Data_Sample2::GetFeature(int index, featuretype* abc, featuretype* feature_
 	if (abc[0] < 0.2 && abc[1] < 0.2 && abc[2] < 0.2)
 		feature_out[0] = x; // provide the meaningful feature value
 	else
-		feature_out[0] = (featuretype)rand() / RAND_MAX * 200; // provide meaningless feature values
+		feature_out[0] = x_noise; // provide meaningless feature values
 }
 
 void Data_Sample2::GetLabel(int index, labeltype* label_out, int* ei)

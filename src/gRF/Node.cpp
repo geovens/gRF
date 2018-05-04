@@ -101,7 +101,7 @@ int Node::SplitManyTimes(int times)
 	delete abc;
 	delete eout;
 
-	if (maxdecrease == 0 || ThisDataPointers->ChildrenN[0] == 0 || ThisDataPointers->ChildrenN[1] == 0)
+	if (maxdecrease == 0)
 	{
 		delete ThisDataPointers->ChildrenLabelCount[0];
 		delete ThisDataPointers->ChildrenLabelCount[1];
@@ -111,7 +111,9 @@ int Node::SplitManyTimes(int times)
 	{
 		//ThisDataPointers->NewSplitFlags();
 		featuretype* feature_temp_store = new featuretype[ThisData->D];
-		Split(ABC, feature_temp_store, true);
+		int rec = Split(ABC, feature_temp_store, true);
+		if (rec < 0)
+			printf("WTF2WTF2");
 		delete feature_temp_store;
 		delete ThisDataPointers->ChildrenLabelCount[0];
 		delete ThisDataPointers->ChildrenLabelCount[1];

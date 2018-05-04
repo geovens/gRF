@@ -162,6 +162,11 @@ int RandomTree::RecursionSplitTrainingSet(Node* node)
 			node->Trained = 1;
 			WriteNode(node);
 
+			if (node->Left->ThisDataPointers->N == 0 || node->Right->ThisDataPointers->N == 0)
+			{
+				printf("WTFWTF???");
+			}
+
 			if (node != Root)
 				node->ThisDataPointers->Release();
 

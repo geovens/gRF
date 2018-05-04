@@ -18,6 +18,6 @@ int Function_Sample2::RandomABC(Node* node, featuretype* abc)
 	abc[0] = (featuretype)rand() / RAND_MAX; // a
 	abc[1] = (featuretype)rand() / RAND_MAX; // b
 	abc[2] = (featuretype)rand() / RAND_MAX; // c
-	abc[3] = (featuretype)rand() / RAND_MAX * 200; // threshold
+	abc[3] = (featuretype)rand() / RAND_MAX * 200; // threshold. same range as the meaningful feature values
 	return 0;
 }

@@ -6,10 +6,12 @@ class Data_Sample2 : public Data
 {
 public:
 
-	// the meaningful feature value, provided when a, b and c are all below 0.2
-	featuretype x;
 	// ground truth label
 	labeltype l;
+	// the meaningful feature value, provided when a, b and c are all below 0.2
+	featuretype x;
+	// the meaningless feature value, provided when a, b and c are not all below 0.2
+	featuretype x_noise;
 
 	Data_Sample2();
 

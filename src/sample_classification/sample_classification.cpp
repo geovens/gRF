@@ -123,10 +123,10 @@ void Sample2()
 	// Some features may have correlation with the label, while most might not.
 	// So we want to search for a number of features that have correlation with label and use them for classification.
 
-	// In this sample program we simulate a simple problem: there are a total of 100 labels (l = 0, 1, ..., 99)
-	// and when a, b and c are all below 0.2, the feature value x = F(a, b, c) extracted will be a 'meaningful' one which conforms to the euqation l = x/2
+	// In this sample program we simulate a simple problem: there are a total of 100 classes (l = 0, 1, ..., 99)
+	// and when a, b and c are all below 0.2, the feature value x = F(a, b, c) extracted will be a 'meaningful' one which conforms to the euqation x = l*2
 	// while otherwise, the feature value x = F(a, b, c) is random and meaningless.
-	// Each sample is associated with a fixed meaningful feature value x and a fixed label l = x/2.
+	// Each sample is associated with a fixed meaningful feature value x = l*2 and a fixed meaningless feature value.
 
 	// In summary, to use gRF, you need to derive two classes, Data and Function, and implement 4 functions according to your problem.
 	// The Data class represents your training and testing data. You can consider it as a wrapper or a feature extracting interface of your data.
@@ -168,6 +168,7 @@ void Sample2()
 		adata->N = 1;
 		adata->l = rand() % 100; // 0 ~ 99
 		adata->x = 2 * adata->l;
+		adata->x_noise = (featuretype)rand() / RAND_MAX * 200;
 		TrainingData->AddElement(adata);
 	}
 
@@ -192,6 +193,7 @@ void Sample2()
 		adata->N = 1;
 		adata->l = rand() % 100; // 0 ~ 99
 		adata->x = 2 * adata->l;
+		adata->x_noise = (featuretype)rand() / RAND_MAX * 200; // from 0 to 200, same range as the meaningful feature values
 		TestingData->AddElement(adata);
 	}
 
@@ -214,7 +216,7 @@ void Sample2()
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	//Sample1();
-	Sample2();
+	Sample1();
+	//Sample2();
 	return 0;
 }
