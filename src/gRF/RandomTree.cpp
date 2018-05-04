@@ -275,6 +275,8 @@ int RandomTree::ReadTrainingProcess()
 
 	int depth, abcnum, d, n, k;
 	fscanf(ftree, "%d,%d,%d,%d,%d\n", &depth, &n, &k, &d, &abcnum);
+	fclose(ftree);
+
 	if (n != ThisData->N)
 		return -1;
 	if (k != ThisData->K)
@@ -283,7 +285,6 @@ int RandomTree::ReadTrainingProcess()
 		return -1;
 	if (abcnum != Function->ABCNum)
 		return -1;
-	fclose(ftree);
 
 	int red = ReadNodeFile();
 	if (red == -1)
