@@ -9,6 +9,8 @@ LinkerIndexerFile::LinkerIndexerFile()
 {
 	Indexes = NULL;
 	ReadBuffPend = ReadBuff + 508;
+	LabelCount = NULL;
+	ChildrenLabelCount = NULL;
 }
 
 int LinkerIndexerFile::InitFromData(Data* data)

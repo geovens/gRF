@@ -144,7 +144,7 @@ void Sample2()
 	// plan a forest and set some parameters
 	int CandidatesEachNode = 1000; // how many sets of feature extracting parameters are randomly generated when training each node. Each node will choose a 'best' one from these many candidates.
 	int MaxTreeDepth = 12; 
-	int TreeNumber = 10;
+	int TreeNumber = 3;
 	int MaxThreadNumber = 4; // when using more than 1 thread to train, the output texts are disordered but that is OK.
 	int TrainingN = 10000;
 	int TestingN = 100;
@@ -154,7 +154,6 @@ void Sample2()
 	forest.SetCandidatesEachNode(CandidatesEachNode);
 	forest.SetMaxTreeDepth(MaxTreeDepth);
 	forest.SetMaxThreadNumber(MaxThreadNumber);
-
 	Function* decisionfunc = new Function_Sample2();
 	forest.SetFunction(decisionfunc);
 
@@ -190,6 +189,18 @@ void Sample2()
 		return;
 	}
 
+	// delete the trained tree as if ending the training program
+	forest.Release();
+	getchar();
+
+
+	// reload the previously trained tree as if the new testing program starting
+	RandomForest forest_test;
+	forest_test.Plant(TreeNumber);
+	decisionfunc = new Function_Sample2();
+	forest_test.SetFunction(decisionfunc);
+	forest_test.Load(); // load the previously trained model from ./output/ folder which was automatically saved during training
+
 	// generating testing data, organized in 3 hierarchical levels
 	DataSerial* TestingData = new DataSerial();
 	TestingData->D = 1;
@@ -214,7 +225,7 @@ void Sample2()
 	}
 
 	// test the testing data using the trained forest
-	forest.Test(TestingData);
+	forest_test.Test(TestingData);
 
 	// show testing results
 	int wrong = 0;
@@ -233,12 +244,13 @@ void Sample2()
 	}
 	printf("error rate: %f\n", (float)wrong / TestingData->N);
 
+	forest_test.Release();
 	getchar();
 }
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	Sample1();
-	//Sample2();
+	//Sample1();
+	Sample2();
 	return 0;
 }

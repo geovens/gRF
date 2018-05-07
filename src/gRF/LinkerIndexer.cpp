@@ -9,7 +9,10 @@ LinkerIndexer::LinkerIndexer()
 {
 	N = 0;
 	Indexes = NULL;
+	SplitFlags = NULL;
 	IndexesMemoryAlloCount = 0;
+	LabelCount = NULL;
+	ChildrenLabelCount = NULL;
 }
 
 int LinkerIndexer::InitFromData(Data* data)

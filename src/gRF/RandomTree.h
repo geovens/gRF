@@ -39,7 +39,10 @@ public:
 	__declspec(dllexport) ~RandomTree();
 
 	__declspec(dllexport) int Plant();
+	// grow unless MaxDepth reached
 	__declspec(dllexport) int Grow(Node* node);
+	// grow and increas MaxDepth if it's reached
+	__declspec(dllexport) int ForceGrow(Node* node);
 	__declspec(dllexport) int PlantGrowFull(int depth);
 	__declspec(dllexport) int ReadNodeFile();
 	__declspec(dllexport) int Train(Data* data, int pointermode);

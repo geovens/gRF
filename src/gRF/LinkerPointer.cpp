@@ -12,6 +12,8 @@ LinkerPointer::LinkerPointer()
 	FeaturePointers = NULL;
 	Labels = NULL;
 	SplitFlags = NULL;
+	LabelCount = NULL;
+	ChildrenLabelCount = NULL;
 }
 
 int LinkerPointer::InitFromData(Data* data)

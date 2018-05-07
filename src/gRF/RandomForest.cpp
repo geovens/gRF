@@ -71,6 +71,20 @@ int RandomForest::Train(Data* data, int linkermode)
 	return 0;
 }
 
+int RandomForest::Load()
+{
+	for (int t = 0; t < TreeCount; t++)
+	{
+		int rec = Trees[t].ReadNodeFile();
+		if (rec < 0)
+		{
+			printf("failed load tree %d\n", t);
+			return -1;
+		}
+	}
+	return 0;
+}
+
 int RandomForest::Test(Data* data)
 {
 	double* hist = new double[data->K];

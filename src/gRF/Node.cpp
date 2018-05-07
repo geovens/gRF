@@ -281,5 +281,9 @@ void Node::Release()
 		ThisDataPointers->Release();
 	if (ABC != NULL)
 		delete ABC;
+	if (HistLabels != NULL)
+		delete HistLabels;
+	if (SampleReachedCount != NULL)
+		delete SampleReachedCount;
 	delete this;
 }
