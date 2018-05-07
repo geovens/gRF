@@ -191,7 +191,7 @@ void Sample2()
 
 	// delete the trained tree as if ending the training program
 	forest.Release();
-	getchar();
+
 
 
 	// reload the previously trained tree as if the new testing program starting
