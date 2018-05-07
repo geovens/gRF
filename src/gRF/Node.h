@@ -52,8 +52,6 @@ public:
 	int SplitPointers(Linker** child);
 
 	int Vote();
-	//int Train();
-	//int Test();
 
-	//int DrawSplitGrid();
+	void Release();
 };

@@ -55,6 +55,8 @@ public:
 
 	int LoadDataPointers(Node* node);
 
+	__declspec(dllexport) void Release();
+
 protected:
 	int RecursionNewChildNodes(Node* node);
 	int RecursionSplitTrainingSet(Node* node);

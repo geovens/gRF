@@ -10,7 +10,8 @@ LinkerPointer::LinkerPointer()
 	N = 0;
 	PointerMemoryAlloCount = 0;
 	FeaturePointers = NULL;
-	//LabelPointers = NULL;
+	Labels = NULL;
+	SplitFlags = NULL;
 }
 
 int LinkerPointer::InitFromData(Data* data)

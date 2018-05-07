@@ -6,6 +6,7 @@
 
 RandomForest::RandomForest()
 {
+	TreeCount = 0;
 }
 
 int RandomForest::Plant(int count)
@@ -151,6 +152,7 @@ int RandomForest::Test(Data* data)
 			data->SetPrediction3(i, maxk3);
 	}
 	delete hist;
+	delete feature_temp_store;
 	return 0;
 }
 
@@ -233,5 +235,15 @@ int RandomForest::Test(Data* data, int level)
 			data->SetPrediction3(i, maxk3);
 	}
 	delete hist;
+	delete feature_temp_store;
 	return 0;
+}
+
+void RandomForest::Release()
+{
+	for (int n = 0; n < TreeCount; n++)
+	{
+		Trees[n].Release();
+	}
+	TreeCount = 0;
 }

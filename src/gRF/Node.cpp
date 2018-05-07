@@ -269,3 +269,17 @@ int Node::Vote()
 	delete labels;
 	return maxk;
 }
+
+void Node::Release()
+{
+	if (!IsLeaf && Left != NULL)
+		Left->Release();
+	if (!IsLeaf && Right != NULL)
+		Right->Release();
+
+	if (ThisDataPointers != NULL)
+		ThisDataPointers->Release();
+	if (ABC != NULL)
+		delete ABC;
+	delete this;
+}

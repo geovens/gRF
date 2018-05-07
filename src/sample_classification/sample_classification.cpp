@@ -113,6 +113,7 @@ void Sample1()
 	}
 	printf("error rate: %f\n", (float)wrong / TestingData->N);
 
+	forest.Release();
 	getchar();
 }
 

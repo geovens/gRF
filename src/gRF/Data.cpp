@@ -44,8 +44,10 @@
 
 Data::Data()
 {
-	//LabelPercentage = NULL;
+	Features = NULL;
+	Labels = NULL;
 	ReachedNodes = NULL;
+	Predictions = NULL;
 }
 
 int Data::CalLabelPercentage()
@@ -162,10 +164,14 @@ labeltype Data::GetPrediction3(int index)
 
 int Data::Release()
 {
-	delete Features;
-	delete Labels;
-	//delete SplitFlags;
-	//delete LabelCount;
+	if (Features != NULL)
+		delete Features;
+	if (Labels != NULL)
+		delete Labels;
+	if (ReachedNodes != NULL)
+		delete ReachedNodes;
+	if (Predictions != NULL)
+		delete Predictions;
 	delete this;
 	return 0;
 }

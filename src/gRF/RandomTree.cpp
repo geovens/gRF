@@ -118,6 +118,7 @@ int RandomTree::RecursionSplitTrainingSet(Node* node)
 			node->Trained = 1;
 			WriteNode(node);
 			node->ThisDataPointers->Release();
+			node->ThisDataPointers = NULL;
 			return 0;
 		}
 		int rec;
@@ -168,7 +169,10 @@ int RandomTree::RecursionSplitTrainingSet(Node* node)
 			}
 
 			if (node != Root)
+			{
 				node->ThisDataPointers->Release();
+				node->ThisDataPointers = NULL;
+			}
 
 			if (node->Type != 1)
 			{
@@ -192,6 +196,7 @@ int RandomTree::RecursionSplitTrainingSet(Node* node)
 				node->Left->Trained = 1;
 				WriteNode(node->Left);
 				node->Left->ThisDataPointers->Release();
+				node->ThisDataPointers = NULL;
 			}
 			RecursionSplitTrainingSet(node->Right);
 		}
@@ -202,6 +207,7 @@ int RandomTree::RecursionSplitTrainingSet(Node* node)
 			node->Trained = 1;
 			WriteNode(node);
 			node->ThisDataPointers->Release();
+			node->ThisDataPointers = NULL;
 		}
 		return 0;
 	}
@@ -639,4 +645,10 @@ bool RandomTree::TestFeatureReach(int index, Node* srcnode, featuretype* feature
 		return true;
 	else
 		return false;
+}
+
+void RandomTree::Release()
+{
+	if (Root != NULL)
+		Root->Release();
 }

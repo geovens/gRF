@@ -5,6 +5,8 @@
 DataSerial::DataSerial()
 {
 	N = 0;
+	ElementCount = 0;
+	EN = NULL;
 	Elements = NULL;
 	ElementsMemoryAlloCount = 0;
 }
@@ -155,5 +157,9 @@ int DataSerial::Release()
 	{
 		Elements[e]->Release();
 	}
+	if (EN != NULL)
+		delete EN;
+	if (Elements != NULL)
+		delete Elements;
 	return 0;
 }
