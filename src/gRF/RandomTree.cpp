@@ -165,22 +165,7 @@ int RandomTree::RecursionSplitTrainingSet(Node* node)
 			{
 				for (int i = 0; i < node->Level; i++)
 					printf("   ");
-				printf("%d -> %d, %d", node->ThisDataPointers->N, node->Left->ThisDataPointers->N, node->Right->ThisDataPointers->N);
-				//printf("      class 0: %d -> %d, %d", node->ThisDataPointers->LabelCount[0], node->Left->ThisDataPointers->LabelCount[0], node->Right->ThisDataPointers->LabelCount[0]);
-				// Calculate the contribution of each node, but only valid if there are only two classes!!
-				int thismin = node->ThisData->N;
-				int leftmin = node->ThisData->N;
-				int rightmin = node->ThisData->N;
-				int rootmin = node->ThisData->N;
-				for (int k = 0; k < node->ThisData->K; k++)
-				{
-					if (node->ThisDataPointers->LabelCount[k] < thismin) thismin = node->ThisDataPointers->LabelCount[k];
-					if (node->Left->ThisDataPointers->LabelCount[k] < leftmin) leftmin = node->Left->ThisDataPointers->LabelCount[k];
-					if (node->Right->ThisDataPointers->LabelCount[k] < rightmin) rightmin = node->Right->ThisDataPointers->LabelCount[k];
-					if (Root->ThisDataPointers->LabelCount[k] < rootmin) rootmin = Root->ThisDataPointers->LabelCount[k];
-				}
-				//printf("      contribution: %.3lf", (double)(thismin - leftmin - rightmin) / rootmin);
-				printf("\n");
+				printf("%d -> %d, %d\n", node->ThisDataPointers->N, node->Left->ThisDataPointers->N, node->Right->ThisDataPointers->N);
 			}
 
 			node->Trained = 1;

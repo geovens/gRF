@@ -22,8 +22,8 @@ int LinkerPointer::InitFromData(Data* data)
 	N = 0;
 	PointerMemoryAlloCount = 0;
 	FeaturePointers = NULL;
-	//LabelPointers = NULL;
-	LabelCount = new int[data->K];
+	if (LabelCount == NULL)
+		LabelCount = new int[data->K];
 	memset(LabelCount, 0, data->K * sizeof(int));
 
 	FastInit();
@@ -111,7 +111,8 @@ void LinkerPointer::SetSplitFlagNext(char flag)
 
 int LinkerPointer::NewSplitFlags()
 {
-	SplitFlags = new char[N];
+	if (SplitFlags == NULL)
+		SplitFlags = new char[N];
 	memset(SplitFlags, 0, N * sizeof(char));
 	return 0;
 }

@@ -21,7 +21,8 @@ int LinkerIndexer::InitFromData(Data* data)
 	N = 0;
 	IndexesMemoryAlloCount = 0;
 	Indexes = NULL;
-	LabelCount = new int[data->K];
+	if (LabelCount == NULL)
+		LabelCount = new int[data->K];
 	memset(LabelCount, 0, data->K * sizeof(int));
 
 	int ei = 0;
@@ -157,7 +158,8 @@ void LinkerIndexer::SetSplitFlagNext(char flag)
 
 int LinkerIndexer::NewSplitFlags()
 {
-	SplitFlags = new char[N];
+	if (SplitFlags == NULL)
+		SplitFlags = new char[N];
 	memset(SplitFlags, 0, N * sizeof(char));
 	return 0;
 }

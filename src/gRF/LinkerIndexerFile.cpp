@@ -17,7 +17,8 @@ int LinkerIndexerFile::InitFromData(Data* data)
 {
 	ThisData = data;
 	N = data->N;
-	LabelCount = new int[data->K];
+	if (LabelCount == NULL)
+		LabelCount = new int[data->K];
 	memset(LabelCount, 0, data->K * sizeof(int));
 
 	// temp!

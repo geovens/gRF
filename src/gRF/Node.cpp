@@ -105,6 +105,7 @@ int Node::SplitManyTimes(int times)
 	{
 		delete ThisDataPointers->ChildrenLabelCount[0];
 		delete ThisDataPointers->ChildrenLabelCount[1];
+		delete ThisDataPointers->ChildrenLabelCount;
 		return -1;
 	}
 	else
@@ -117,6 +118,7 @@ int Node::SplitManyTimes(int times)
 		delete feature_temp_store;
 		delete ThisDataPointers->ChildrenLabelCount[0];
 		delete ThisDataPointers->ChildrenLabelCount[1];
+		delete ThisDataPointers->ChildrenLabelCount;
 		return 0;
 	}
 }
@@ -207,7 +209,8 @@ int Node::Vote()
 	if (ThisDataPointers->N == 0)
 	{
 		printf("WARNING: N == 0 in Vote()\n");
-		HistLabels = new double[ThisData->K];
+		if (HistLabels == NULL)
+			HistLabels = new double[ThisData->K];
 		for (int k = 0; k < ThisData->K; k++)
 		{
 			HistLabels[k] = 0;
@@ -225,7 +228,8 @@ int Node::Vote()
 	}
 	ThisDataPointers->FastClose();
 
-	HistLabels = new double[ThisData->K];
+	if (HistLabels == NULL)
+		HistLabels = new double[ThisData->K];
 	int maxvote = -1;
 	int maxk = -1;
 	int secondmaxvote = -1;
@@ -261,7 +265,8 @@ int Node::Vote()
 
 	MajorLabel = maxk;
 	SecondMajorLabel = secondmaxk;
-	SampleReachedCount = new int[ThisData->K];
+	if (SampleReachedCount == NULL)
+		SampleReachedCount = new int[ThisData->K];
 	memset(SampleReachedCount, 0, sizeof(int)* ThisData->K);
 	for (int k = 0; k < ThisData->K; k++)
 		SampleReachedCount[k] = labels[k] / ThisData->LabelPercentage[k] / ThisData->K;
